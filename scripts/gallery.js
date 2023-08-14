@@ -2,14 +2,22 @@
 const view = document.querySelector('.gallery-view');
 const resources = PIXI.Loader.shared.resources;
 
-// Target for pointer. If down, value is 1, else value is 0
+// Pointer tracking
 let pointerDownTarget = 0
-// Useful variables to keep track of the pointer
 let pointerStart = new PIXI.Point()
 let pointerDiffStart = new PIXI.Point()
 let width, height, app, background, uniforms, diffX, diffY;
 
-// Set dimensions
+
+// Image grid and container
+const gridSize = 50;
+const gridMin = 3;
+let gridColumnsCount, gridRowsCount, gridColumns, gridRows, grid;
+let widthRest, heightRest, centerX, centerY, rects;
+let container;
+const imagePadding = 20;
+
+
 function initDimensions() {
     width = document.getElementById("gallery-container").offsetWidth;
     height = 800;
@@ -17,60 +25,80 @@ function initDimensions() {
     diffY = 0
 }
 
-// Init the PixiJS Application
 function initApp() {
-    // Create a PixiJS Application, using the view (canvas) provided
     app = new PIXI.Application({view});
-    // Resizes renderer view in CSS pixels to allow for resolutions other than 1
     app.renderer.autoDensity = true;
-    // Resize the view to match viewport dimensions
     app.renderer.resize(width, height);
 }
 
-// Init everything
-function init() {
-    initDimensions();
-    initUniforms();
-    initApp();
-    initEvents();
-    initBackground();
-    initDistortionFilter();
-}
-
-// Init the gridded background
 function initBackground() {
     // Create a new empty Sprite and define its size
     background = new PIXI.Sprite();
     background.width = width;
     background.height = height;
-    // Get the code for the fragment shader from the loaded resources
     const backgroundFragmentShader = resources['shaders/gridshader.glsl'].data;
-    // Create a new Filter using the fragment shader
-    // We don't need a custom vertex shader, so we set it as `undefined`
     const backgroundFilter = new PIXI.Filter(undefined, backgroundFragmentShader, uniforms);
-    // Assign the filter to the background Sprite
     background.filters = [backgroundFilter];
-    // Add the background to the stage
     app.stage.addChild(background);
 }
 
+// Initialize the random grid layout
+function initGrid () {
+    // Getting columns
+    gridColumnsCount = Math.ceil(width / gridSize)
+    // Getting rows
+    gridRowsCount = Math.ceil(height / gridSize)
+    // Make the grid 5 times bigger than viewport
+    gridColumns = gridColumnsCount * 5
+    gridRows = gridRowsCount * 5
+    // Create a new Grid instance with our settings
+    grid = new Grid(gridSize, gridColumns, gridRows, gridMin)
+    // Calculate the center position for the grid in the viewport
+    widthRest = Math.ceil(gridColumnsCount * gridSize - width)
+    heightRest = Math.ceil(gridRowsCount * gridSize - height)
+    centerX = (gridColumns * gridSize / 2) - (gridColumnsCount * gridSize / 2)
+    centerY = (gridRows * gridSize / 2) - (gridRowsCount * gridSize / 2)
+    // Generate the list of rects
+    rects = grid.generateRects()
+}
 
-// Init the distortion filter for the entire stage
+function initContainer () {
+    container = new PIXI.Container()
+    app.stage.addChild(container)
+}
+
+function initRectsAndImages () {
+    // Create a new Graphics element to draw solid rectangles
+    const graphics = new PIXI.Graphics()
+    // Select the color for rectangles
+    graphics.beginFill(0xAA22CC)
+    // Loop over each rect in the list
+    rects.forEach(rect => {
+        // Draw the rectangle
+        graphics.drawRect(
+            rect.x * gridSize,
+            rect.y * gridSize,
+            rect.w * gridSize - imagePadding,
+            rect.h * gridSize - imagePadding
+        )
+    })
+    // Ends the fill action
+    graphics.endFill()
+    // Add the graphics (with all drawn rects) to the container
+    container.addChild(graphics)
+}
+
+
 function initDistortionFilter() {
-    // Get the code for the distortion fragment shader
     const distortionFragmentShaderCode = resources['shaders/distortshader.glsl'].data;
 
-    // Create a new Filter using the distortion fragment shader
     const distortionFilter = new PIXI.Filter(undefined, distortionFragmentShaderCode, uniforms);
 
-    // Apply the filter to the entire stage
     app.stage.filters = [distortionFilter];
 }
 
 
-// Start listening events
 function initEvents() {
-    // Make stage interactive, so it can listen to events
     app.stage.interactive = true
 
     // Pointer & touch events are normalized into
@@ -88,11 +116,10 @@ function initEvents() {
     app.ticker.add(() => {
         // Multiply the values by a coefficient to get a smooth animation
 
-        uniforms.uPointerDown += (pointerDownTarget - uniforms.uPointerDown) * 0.4
-        uniforms.uPointerDiff.x += (diffX - uniforms.uPointerDiff.x) * 0.2;
-        uniforms.uPointerDiff.y += (diffY - uniforms.uPointerDiff.y) * 0.2;
-
-
+        let speedMultiplier = 0.005;
+        uniforms.uPointerDown += (pointerDownTarget - uniforms.uPointerDown) * 0.2 + 0.12
+        uniforms.uPointerDiff.x += (diffX - uniforms.uPointerDiff.x) * speedMultiplier;
+        uniforms.uPointerDiff.y += (diffY - uniforms.uPointerDiff.y) * speedMultiplier;
     })
 }
 
@@ -123,19 +150,29 @@ function onPointerUp() {
 function onPointerMove(e) {
     const { x, y } = e.data.global;
     if (pointerDownTarget) {
-        diffX = pointerDiffStart.x + (x - pointerStart.x)
-        diffY = pointerDiffStart.y + (y - pointerStart.y)
+        let grabStrength = 5;
+        diffX = pointerDiffStart.x + (x - pointerStart.x) * grabStrength
+        diffY = pointerDiffStart.y + (y - pointerStart.y) * grabStrength
 
-        // Mettre à jour les uniformes ici
-        uniforms.uPointerDiff.x = diffX;
-        uniforms.uPointerDiff.y = diffY;
     }
 }
 
 function onWheelScroll(e){
-    if(Math.abs(uniforms.uDeltaWheel) >= 50 && e.deltaY > 0) return
     console.log(uniforms.uDeltaWheel)
+
+    if(uniforms.uDeltaWheel >= 50 && e.deltaY < 0) return
+    if(uniforms.uDeltaWheel <= - 100 && e.deltaY > 0) return
     uniforms.uDeltaWheel -= e.deltaY * 0.02;
+}
+
+// Init everything
+function init() {
+    initDimensions();
+    initUniforms();
+    initApp();
+    initEvents();
+    initBackground();
+    initDistortionFilter();
 }
 
 // Load resources, then init the app

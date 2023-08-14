@@ -25,7 +25,7 @@ void main () {
   // Set `color` to black
   vec3 color = vec3(0.0);
   // If it is a grid line, change blue channel to 0.3
-  color.b = isGridLine(coord) * 0.3;
+  color.b = isGridLine(coord) * 0.8;
   // Assing the final rgba color to `gl_FragColor`
   gl_FragColor = vec4(color, 1.0);
 }
