@@ -8,6 +8,7 @@ precision mediump float;
 // Uniforms from Javascript
 uniform vec2 uResolution;
 uniform float uPointerDown;
+uniform vec2 uPointerDiff;
 
 // The texture is defined by PixiJS
 varying vec2 vTextureCoord;
@@ -42,12 +43,13 @@ vec2 computeUV (vec2 uv, float k, float kcube) {
 // Main function
 void main () {
   // Coordinates for the current pixel
-  vec2 coord = gl_FragCoord.xy;
+  vec2 coord = gl_FragCoord.xy - uPointerDiff;
   // Set `color` to black
   vec3 color = vec3(0.0);
   // If it is a grid line, change blue channel to 0.3
   color.b = isGridLine(coord) * 0.3;
   // Assing the final rgba color to `gl_FragColor`
   gl_FragColor = vec4(color, 1.0);
+
 }
 

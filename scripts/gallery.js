@@ -1,20 +1,26 @@
 // Get canvas view
 const view = document.querySelector('.gallery-view');
 const resources = PIXI.Loader.shared.resources;
-let width, height, app, background, uniforms;
+let width, height, app, background, uniforms, diffX, diffY;
 
-let pointerDownTarget = 1
+// Target for pointer. If down, value is 1, else value is 0
+let pointerDownTarget = 0
+// Useful variables to keep track of the pointer
+let pointerStart = new PIXI.Point()
+let pointerDiffStart = new PIXI.Point()
 
 // Set dimensions
 function initDimensions() {
     width = document.getElementById("gallery-container").offsetWidth;
     height = 800;
+    diffX = 0
+    diffY = 0
 }
 
 // Init the PixiJS Application
 function initApp() {
     // Create a PixiJS Application, using the view (canvas) provided
-    app = new PIXI.Application({ view });
+    app = new PIXI.Application({view});
     // Resizes renderer view in CSS pixels to allow for resolutions other than 1
     app.renderer.autoDensity = true;
     // Resize the view to match viewport dimensions
@@ -26,6 +32,7 @@ function init() {
     initDimensions();
     initUniforms();
     initApp();
+    initEvents();
     initBackground();
     initDistortionFilter();
 }
@@ -60,13 +67,64 @@ function initDistortionFilter() {
     app.stage.filters = [distortionFilter];
 }
 
+
+// Start listening events
+function initEvents() {
+    // Make stage interactive, so it can listen to events
+    app.stage.interactive = true
+
+    // Pointer & touch events are normalized into
+    // the `pointer*` events for handling different events
+    app.stage
+        .on('pointerdown', onPointerDown)
+        .on('pointerup', onPointerUp)
+        .on('pointerupoutside', onPointerUp)
+        .on('pointermove', onPointerMove)
+
+    // Animation loop
+    // Code here will be executed on every animation frame
+    app.ticker.add(() => {
+        // Multiply the values by a coefficient to get a smooth animation
+        uniforms.uPointerDown += (pointerDownTarget - uniforms.uPointerDown) * 0.075
+        uniforms.uPointerDiff.x += (diffX - uniforms.uPointerDiff.x) * 0.2
+        uniforms.uPointerDiff.y += (diffY - uniforms.uPointerDiff.y) * 0.2
+    })
+}
+
 // Set initial values for uniforms
-function initUniforms () {
+function initUniforms() {
     uniforms = {
         uResolution: new PIXI.Point(width, height),
+        uPointerDiff:  new PIXI.Point(),
         uPointerDown: pointerDownTarget
     }
 }
+
+
+function onPointerDown(e) {
+    console.log('down')
+    const {x, y} = e.data.global
+    pointerDownTarget = 1
+    pointerStart.set(x, y)
+    pointerDiffStart = uniforms.uPointerDiff.clone()
+}
+
+// reset position of mouse
+function onPointerUp() {
+    console.log('up')
+    pointerDownTarget = 0
+}
+
+// calculates difference of positions to have a direction vector
+function onPointerMove(e) {
+    const {x, y} = e.data.global
+    if (pointerDownTarget) {
+        console.log('dragging')
+        diffX = pointerDiffStart.x + (x - pointerStart.x)
+        diffY = pointerDiffStart.y + (y - pointerStart.y)
+    }
+}
+
 
 // Load resources, then init the app
 PIXI.Loader.shared.add([
