@@ -1,13 +1,13 @@
 // Get canvas view
 const view = document.querySelector('.gallery-view');
 const resources = PIXI.Loader.shared.resources;
-let width, height, app, background, uniforms, diffX, diffY;
 
 // Target for pointer. If down, value is 1, else value is 0
 let pointerDownTarget = 0
 // Useful variables to keep track of the pointer
 let pointerStart = new PIXI.Point()
 let pointerDiffStart = new PIXI.Point()
+let width, height, app, background, uniforms, diffX, diffY;
 
 // Set dimensions
 function initDimensions() {
@@ -47,7 +47,7 @@ function initBackground() {
     const backgroundFragmentShader = resources['shaders/gridshader.glsl'].data;
     // Create a new Filter using the fragment shader
     // We don't need a custom vertex shader, so we set it as `undefined`
-    const backgroundFilter = new PIXI.Filter(undefined, backgroundFragmentShader);
+    const backgroundFilter = new PIXI.Filter(undefined, backgroundFragmentShader, uniforms);
     // Assign the filter to the background Sprite
     background.filters = [backgroundFilter];
     // Add the background to the stage
@@ -81,13 +81,18 @@ function initEvents() {
         .on('pointerupoutside', onPointerUp)
         .on('pointermove', onPointerMove)
 
+    view.addEventListener('wheel', onWheelScroll);
+
     // Animation loop
     // Code here will be executed on every animation frame
     app.ticker.add(() => {
         // Multiply the values by a coefficient to get a smooth animation
-        uniforms.uPointerDown += (pointerDownTarget - uniforms.uPointerDown) * 0.075
-        uniforms.uPointerDiff.x += (diffX - uniforms.uPointerDiff.x) * 0.2
-        uniforms.uPointerDiff.y += (diffY - uniforms.uPointerDiff.y) * 0.2
+
+        uniforms.uPointerDown += (pointerDownTarget - uniforms.uPointerDown) * 0.4
+        uniforms.uPointerDiff.x += (diffX - uniforms.uPointerDiff.x) * 0.2;
+        uniforms.uPointerDiff.y += (diffY - uniforms.uPointerDiff.y) * 0.2;
+
+
     })
 }
 
@@ -96,10 +101,10 @@ function initUniforms() {
     uniforms = {
         uResolution: new PIXI.Point(width, height),
         uPointerDiff:  new PIXI.Point(),
-        uPointerDown: pointerDownTarget
+        uPointerDown: pointerDownTarget,
+        uDeltaWheel: 0
     }
 }
-
 
 function onPointerDown(e) {
     console.log('down')
@@ -115,16 +120,23 @@ function onPointerUp() {
     pointerDownTarget = 0
 }
 
-// calculates difference of positions to have a direction vector
 function onPointerMove(e) {
-    const {x, y} = e.data.global
+    const { x, y } = e.data.global;
     if (pointerDownTarget) {
-        console.log('dragging')
         diffX = pointerDiffStart.x + (x - pointerStart.x)
         diffY = pointerDiffStart.y + (y - pointerStart.y)
+
+        // Mettre à jour les uniformes ici
+        uniforms.uPointerDiff.x = diffX;
+        uniforms.uPointerDiff.y = diffY;
     }
 }
 
+function onWheelScroll(e){
+    if(Math.abs(uniforms.uDeltaWheel) >= 50 && e.deltaY > 0) return
+    console.log(uniforms.uDeltaWheel)
+    uniforms.uDeltaWheel -= e.deltaY * 0.02;
+}
 
 // Load resources, then init the app
 PIXI.Loader.shared.add([
