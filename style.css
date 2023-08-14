@@ -1,0 +1,27 @@
+:root {
+  font-family: "Open Sans", sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+
+  --color-blue-dark: #090b26;
+  --color-blue: #2436F7;
+  --color-blue-light: #48e5ff;
+  --color-green-light: #47f586;
+  --color-white-pure: #ffffff;
+
+  background-color: var(--color-blue-dark);
+  color: var(--color-white-pure);
+}
+
+
+* {
+  padding: 0;
+}
+
+.o-container {
+  max-width: calc(1250 / 16 * 1rem);
+  margin: 0 auto;
+  padding-left: calc(6/16*1rem);
+  padding-right: calc(6/16*1rem);
+}
