@@ -61,7 +61,7 @@ const gridMin = 3
 const imagePadding = 20
 let gridColumnsCount, gridRowsCount, gridColumns, gridRows, grid
 let widthRest, heightRest, centerX, centerY
-let rects, images = [], imagesUrls = {}
+let rects, images = [], imagesUrls = {}, animatedSprites = [];
 let container;
 
 let time;
@@ -120,68 +120,64 @@ function initContainer() {
 // Add solid rectangles and images
 // So far, we will only add rectangles
 function initRectsAndImages() {
-    // drawRect(0xAA22CC)
-    drawImage()
+    rects.forEach(rect => {
+
+        const gifUrl = "https://media3.giphy.com/media/26gsr1DpFvpzXNtFm/giphy.gif?cid=ecf05e47slf8uig8bjlr4sgl9wnlngw1ue04lzz2g3e4z4b4&ep=v1_gifs_search&rid=giphy.gif&ct=g"
+        // drawGif(gifUrl, rect);
+        // drawRect(0xffffff, rect)
+        drawImage(rect);
+    })
 }
 
-function drawRect(color) {
+function drawRect(color, rect) {
     const graphics = new PIXI.Graphics()
     graphics.beginFill(color)
-    rects.forEach(rect => {
-        graphics.drawRect(
-            rect.x * gridSize,
-            rect.y * gridSize,
-            rect.w * gridSize - imagePadding,
-            rect.h * gridSize - imagePadding
-        )
-    })
+    graphics.drawRect(
+        rect.x * gridSize,
+        rect.y * gridSize,
+        rect.w * gridSize - imagePadding,
+        rect.h * gridSize - imagePadding)
     graphics.endFill()
     container.addChild(graphics)
 }
 
-function drawImage(img) {
-
-
-
+function drawImage(rect) {
 
     const graphics = new PIXI.Graphics()
     graphics.beginFill(0x000000)
 
+    const image = new PIXI.Sprite();
 
+    image.x = rect.x * gridSize;
+    image.y = rect.y * gridSize;
+    image.width = rect.w * gridSize - imagePadding;
+    image.height = rect.h * gridSize - imagePadding;
 
-    for (let i = 0; i < rects.length; i++) {
-        const rect = rects[i];
-        const image = new PIXI.Sprite();
+    image.alpha = 1
+    images.push(image);
 
-        image.x = rect.x * gridSize;
-        image.y = rect.y * gridSize;
-        image.width = rect.w * gridSize - imagePadding;
-        image.height = rect.h * gridSize - imagePadding;
-
-        image.alpha = 1
-        images.push(image);
-
-        graphics.drawRect(image.x, image.y, image.width, image.height)
-    }
+    graphics.drawRect(image.x, image.y, image.width, image.height)
     graphics.endFill();
+
+
     container.addChild(graphics);
-
-
-
-    //
-    // const graphics2 = graphics;
-    // graphics2.x += graphics.width + imagePadding;
 
     images.forEach(image => {
         container.addChild(image)
     })
-
-
-
 }
 
-function drawVideo(video) {
+function drawGif(url, rect) {
+    const sprite = new PIXI.AnimatedSprite.fromImages([url]);
+    sprite.x = rect.x * gridSize;
+    sprite.y = rect.y * gridSize;
+    sprite.width = rect.w * gridSize - imagePadding;
+    sprite.height = rect.h * gridSize - imagePadding;
+    sprite.loop = true; // Loop the animation
+    sprite.animationSpeed = 0.1; // Set the animation speed
 
+    container.addChild(sprite);
+    animatedSprites.push(sprite);
 }
 
 function loadTexture(i) {
@@ -214,12 +210,8 @@ function checkRectsAndImages() {
                 rect.discovered = true
                 loadTexture(index)
             }
-        } else {
-            if (rect.discovered && !rect.loaded) {
-                rect.discovered = false
-                rect.controller.abort()
-            }
         }
+
     })
 }
 
