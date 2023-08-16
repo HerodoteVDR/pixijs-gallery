@@ -1,3 +1,6 @@
+import {AnimatedGIF} from "@pixi/gif";
+
+
 class MasonryGrid {
     constructor(gridSize, gridColumns, gridRows, gridMin) {
         this.gridSize = gridSize
@@ -120,13 +123,18 @@ function initContainer() {
 // Add solid rectangles and images
 // So far, we will only add rectangles
 function initRectsAndImages() {
-    rects.forEach(rect => {
-
-        const gifUrl = "https://media3.giphy.com/media/26gsr1DpFvpzXNtFm/giphy.gif?cid=ecf05e47slf8uig8bjlr4sgl9wnlngw1ue04lzz2g3e4z4b4&ep=v1_gifs_search&rid=giphy.gif&ct=g"
-        drawGif(gifUrl, rect);
+    for (const rect of rects) {
+        //
+        const gifUrl ="./src/gif/funny.gif"
+        // drawGif( rect, gifUrl);
         // drawRect(0xffffff, rect)
         // drawImage(rect);
-    })
+        if(randomInRange(0, 3) < 1) drawMp4(rect, "./src/mp4/luffy.mp4");
+        else if(randomInRange(0,3)> 2) drawGif(rect, gifUrl);
+        else drawImage(rect)
+
+
+    }
 }
 
 function drawRect(color, rect) {
@@ -151,7 +159,7 @@ function drawImage(rect) {
 
     image.alpha = 1;
     images.push(image);
-
+    //
     // const mask = new PIXI.Graphics();
     // mask.beginFill(0xffffff);
     // mask.drawRect(
@@ -167,38 +175,65 @@ function drawImage(rect) {
     container.addChild(image);
 }
 
-
-function drawGif(url, rect) {
-    const sprite = new PIXI.AnimatedSprite.fromImages([url]);
+function drawGif(rect, url) {
+    const texture = new PIXI.Texture.from(url);
+    const sprite = new PIXI.Sprite(texture);
     sprite.x = rect.x * gridSize;
     sprite.y = rect.y * gridSize;
     sprite.width = rect.w * gridSize - imagePadding;
     sprite.height = rect.h * gridSize - imagePadding;
     sprite.loop = true; // Loop the animation
-    sprite.animationSpeed = 0.1; // Set the animation speed
+    sprite.animationSpeed = 2.; // Set the animation speed
 
     container.addChild(sprite);
     animatedSprites.push(sprite);
 }
 
-function loadTexture(i) {
+function drawMp4(rect, url) {
+    const videoTexture = PIXI.Texture.from(url);
+    const videoSprite = new PIXI.Sprite(videoTexture);
+
+    videoSprite.x = rect.x * gridSize;
+    videoSprite.y = rect.y * gridSize;
+    videoSprite.width = rect.w * gridSize - imagePadding;
+    videoSprite.height = rect.h * gridSize - imagePadding;
+// Ajouter un événement de clic pour démarrer/arrêter la vidéo
+    videoSprite.interactive = true;
+    videoSprite.on('click', () => {
+        if (videoSprite.texture.baseTexture.source.paused) {
+            videoSprite.texture.baseTexture.source.play();
+        } else {
+            videoSprite.texture.baseTexture.source.pause();
+        }
+    });
+    videoSprite.texture.baseTexture.source.addEventListener('canplaythrough', () => {
+        videoSprite.texture.baseTexture.source.play();
+    });
+    // Ajouter un événement pour réinitialiser la vidéo lorsqu'elle se termine
+    videoSprite.texture.baseTexture.source.addEventListener('ended', () => {
+        videoSprite.texture.baseTexture.source.currentTime = 0;
+        videoSprite.texture.baseTexture.source.play();
+    });
+    container.addChild(videoSprite);
+}
+
+function loadTexture(i, url) {
     const image = images[i];
 
-    const url = `https://images.prismic.io/20stm/f3800fa3-6042-45be-9b31-ca940fc76664_Thumbnail_Small_Things_Large.png?auto=compress,format&rect=0,100,1500,881&w=1260&h=740`
+
     const rect = rects[i];
 
     const {signal} = rect.controller = new AbortController();
 
     fetch(url, {signal}).then(r => {
-        // Get image URL, and if it was downloaded before, load another image
-        // Otherwise, save image URL and set the texture
+
         const id = r.url.split('?')[0]
 
         imagesUrls[id] = true
         image.texture = PIXI.Texture.from(r.url)
         rect.loaded = true
     }).catch(() => {
-        console.log("erreur")
+        console.log(signal)
     })
 }
 
@@ -209,7 +244,7 @@ function checkRectsAndImages() {
         if (rectIntersectsWithViewport(rect)) {
             if (!rect.discovered) {
                 rect.discovered = true;
-                loadTexture(index);
+                loadTexture(index, "https://images.prismic.io/20stm/f3800fa3-6042-45be-9b31-ca940fc76664_Thumbnail_Small_Things_Large.png?auto=compress,format&rect=0,100,1500,881&w=1260&h=740");
             }
         }
 
@@ -234,9 +269,6 @@ function initDistortionFilter() {
 
 function initEvents() {
     app.stage.interactive = true
-
-    // Pointer & touch events are normalized into
-    // the `pointer*` events for handling different events
     app.stage
         .on('pointerdown', onPointerDown)
         .on('pointerup', onPointerUp)

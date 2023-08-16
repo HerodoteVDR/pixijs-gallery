@@ -48,4 +48,5 @@ body {
   background-color: #051231;
   margin: 0;
   font-size: calc(50/16*1rem);
+  border-radius: 15px;
 }
