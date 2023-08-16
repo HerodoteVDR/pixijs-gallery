@@ -1,25 +1,75 @@
+class MasonryGrid {
+    constructor(gridSize, gridColumns, gridRows, gridMin) {
+        this.gridSize = gridSize
+        this.gridColumns = gridColumns
+        this.gridRows = gridRows
+        this.gridMin = gridMin
+        this.rects = []
+        this.currentRects = [{x: 0, y: 0, w: this.gridColumns, h: this.gridRows}]
+    }
+
+    // Takes the first rectangle on the list, and divides it in 2 more rectangles if possible
+    splitCurrentRect() {
+        if (this.currentRects.length) {
+            const currentRect = this.currentRects.shift()
+            const cutVertical = currentRect.w > currentRect.h
+            const cutSide = cutVertical ? currentRect.w : currentRect.h
+            const cutSize = cutVertical ? 'w' : 'h'
+            const cutAxis = cutVertical ? 'x' : 'y'
+            if (cutSide > this.gridMin * 2) {
+                const rect1Size = randomInRange(this.gridMin, cutSide - this.gridMin)
+                const rect1 = Object.assign({}, currentRect, {[cutSize]: rect1Size})
+                const rect2 = Object.assign({}, currentRect, {
+                    [cutAxis]: currentRect[cutAxis] + rect1Size,
+                    [cutSize]: currentRect[cutSize] - rect1Size
+                })
+                this.currentRects.push(rect1, rect2)
+            } else {
+                this.rects.push(currentRect)
+                this.splitCurrentRect()
+            }
+        }
+    }
+
+    generateRects() {
+        while (this.currentRects.length) {
+            this.splitCurrentRect()
+        }
+        return this.rects
+    }
+}
+
+function randomInRange(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min
+}
+
+
 // Get canvas view
 const view = document.querySelector('.gallery-view');
 const resources = PIXI.Loader.shared.resources;
 
 // Pointer tracking
-let pointerDownTarget = 0
+let pointerDownTarget = 0;
+let isDown = 1;
 let pointerStart = new PIXI.Point()
 let pointerDiffStart = new PIXI.Point()
 let width, height, app, background, uniforms, diffX, diffY;
 
-
 // Image grid and container
-const gridSize = 50;
-const gridMin = 3;
-let gridColumnsCount, gridRowsCount, gridColumns, gridRows, grid;
-let widthRest, heightRest, centerX, centerY, rects;
+const gridSize = 100
+const gridMin = 3
+const imagePadding = 20
+let gridColumnsCount, gridRowsCount, gridColumns, gridRows, grid
+let widthRest, heightRest, centerX, centerY
+let rects, images = [], imagesUrls = {}
 let container;
-const imagePadding = 20;
+
+let time;
 
 
 function initDimensions() {
-    width = document.getElementById("gallery-container").offsetWidth;
+    // width = document.getElementById("gallery-container").offsetWidth;
+    width = window.innerWidth;
     // height = document.getElementById("gallery-container").offsetHeight;
     height = window.innerHeight;
     diffX = 0
@@ -44,7 +94,7 @@ function initBackground() {
 }
 
 // Initialize the random grid layout
-function initGrid () {
+function initGrid() {
     // Getting columns
     gridColumnsCount = Math.ceil(width / gridSize)
     // Getting rows
@@ -52,30 +102,32 @@ function initGrid () {
     // Make the grid 5 times bigger than viewport
     gridColumns = gridColumnsCount * 5
     gridRows = gridRowsCount * 5
-    // Create a new Grid instance with our settings
-    grid = new Grid(gridSize, gridColumns, gridRows, gridMin)
+    // Create a new MasonryGrid instance with our settings
+    grid = new MasonryGrid(gridSize, gridColumns, gridRows, gridMin)
     // Calculate the center position for the grid in the viewport
     widthRest = Math.ceil(gridColumnsCount * gridSize - width)
     heightRest = Math.ceil(gridRowsCount * gridSize - height)
     centerX = (gridColumns * gridSize / 2) - (gridColumnsCount * gridSize / 2)
     centerY = (gridRows * gridSize / 2) - (gridRowsCount * gridSize / 2)
-    // Generate the list of rects
     rects = grid.generateRects()
 }
 
-function initContainer () {
+function initContainer() {
     container = new PIXI.Container()
     app.stage.addChild(container)
 }
 
-function initRectsAndImages () {
-    // Create a new Graphics element to draw solid rectangles
+// Add solid rectangles and images
+// So far, we will only add rectangles
+function initRectsAndImages() {
+    // drawRect(0xAA22CC)
+    drawImage()
+}
+
+function drawRect(color) {
     const graphics = new PIXI.Graphics()
-    // Select the color for rectangles
-    graphics.beginFill(0xAA22CC)
-    // Loop over each rect in the list
+    graphics.beginFill(color)
     rects.forEach(rect => {
-        // Draw the rectangle
         graphics.drawRect(
             rect.x * gridSize,
             rect.y * gridSize,
@@ -83,12 +135,103 @@ function initRectsAndImages () {
             rect.h * gridSize - imagePadding
         )
     })
-    // Ends the fill action
     graphics.endFill()
-    // Add the graphics (with all drawn rects) to the container
     container.addChild(graphics)
 }
 
+function drawImage(img) {
+
+
+
+
+    const graphics = new PIXI.Graphics()
+    graphics.beginFill(0x000000)
+
+
+
+    for (let i = 0; i < rects.length; i++) {
+        const rect = rects[i];
+        const image = new PIXI.Sprite();
+
+        image.x = rect.x * gridSize;
+        image.y = rect.y * gridSize;
+        image.width = rect.w * gridSize - imagePadding;
+        image.height = rect.h * gridSize - imagePadding;
+
+        image.alpha = 1
+        images.push(image);
+
+        graphics.drawRect(image.x, image.y, image.width, image.height)
+    }
+    graphics.endFill();
+    container.addChild(graphics);
+
+
+
+    //
+    // const graphics2 = graphics;
+    // graphics2.x += graphics.width + imagePadding;
+
+    images.forEach(image => {
+        container.addChild(image)
+    })
+
+
+
+}
+
+function drawVideo(video) {
+
+}
+
+function loadTexture(i) {
+    const image = images[i];
+
+    const url = `https://images.prismic.io/20stm/f3800fa3-6042-45be-9b31-ca940fc76664_Thumbnail_Small_Things_Large.png?auto=compress,format&rect=0,100,1500,881&w=1260&h=740`
+    const rect = rects[i];
+
+    const {signal} = rect.controller = new AbortController();
+
+    fetch(url, {signal}).then(r => {
+        // Get image URL, and if it was downloaded before, load another image
+        // Otherwise, save image URL and set the texture
+        const id = r.url.split('?')[0]
+
+        imagesUrls[id] = true
+        image.texture = PIXI.Texture.from(r.url)
+        rect.loaded = true
+    }).catch(() => {
+        console.log("erreur")
+    })
+}
+
+
+function checkRectsAndImages() {
+    rects.forEach((rect, index) => {
+        const image = images[index]
+        if (rectIntersectsWithViewport(rect)) {
+            if (!rect.discovered) {
+                rect.discovered = true
+                loadTexture(index)
+            }
+        } else {
+            if (rect.discovered && !rect.loaded) {
+                rect.discovered = false
+                rect.controller.abort()
+            }
+        }
+    })
+}
+
+// Check if a rect intersects the viewport
+function rectIntersectsWithViewport(rect) {
+    return (
+        rect.x * gridSize + container.x <= width &&
+        0 <= (rect.x + rect.w) * gridSize + container.x &&
+        rect.y * gridSize + container.y <= height &&
+        0 <= (rect.y + rect.h) * gridSize + container.y
+    )
+}
 
 function initDistortionFilter() {
     const distortionFragmentShaderCode = resources['shaders/distortshader.glsl'].data;
@@ -117,10 +260,21 @@ function initEvents() {
     app.ticker.add(() => {
         // Multiply the values by a coefficient to get a smooth animation
 
-        let speedMultiplier = 0.005;
+        time += 0.1;
+        let speedMultiplier = 0.05;
         uniforms.uPointerDown += (pointerDownTarget - uniforms.uPointerDown) * 0.2 + 0.12
         uniforms.uPointerDiff.x += (diffX - uniforms.uPointerDiff.x) * speedMultiplier;
         uniforms.uPointerDiff.y += (diffY - uniforms.uPointerDiff.y) * speedMultiplier;
+
+
+        uniforms.uTime += 1 * isDown;
+
+        container.x = uniforms.uPointerDiff.x - centerX - uniforms.uTime;
+        container.y = uniforms.uPointerDiff.y;
+
+        container.scale.set(uniforms.uDeltaWheel * 0.01 + 1);
+
+        checkRectsAndImages()
     })
 }
 
@@ -128,9 +282,10 @@ function initEvents() {
 function initUniforms() {
     uniforms = {
         uResolution: new PIXI.Point(width, height),
-        uPointerDiff:  new PIXI.Point(),
+        uPointerDiff: new PIXI.Point(),
         uPointerDown: pointerDownTarget,
-        uDeltaWheel: 0
+        uDeltaWheel: 0,
+        uTime: 0
     }
 }
 
@@ -138,6 +293,7 @@ function onPointerDown(e) {
     console.log('down')
     const {x, y} = e.data.global
     pointerDownTarget = 1
+    isDown = 0;
     pointerStart.set(x, y)
     pointerDiffStart = uniforms.uPointerDiff.clone()
 }
@@ -146,23 +302,21 @@ function onPointerDown(e) {
 function onPointerUp() {
     console.log('up')
     pointerDownTarget = 0
+    isDown = 1;
 }
 
 function onPointerMove(e) {
-    const { x, y } = e.data.global;
+    const {x, y} = e.data.global;
     if (pointerDownTarget) {
-        let grabStrength = 5;
+        let grabStrength = 1;
         diffX = pointerDiffStart.x + (x - pointerStart.x) * grabStrength
         diffY = pointerDiffStart.y + (y - pointerStart.y) * grabStrength
-
     }
 }
 
-function onWheelScroll(e){
-    console.log(uniforms.uDeltaWheel)
-
-    if(uniforms.uDeltaWheel >= 50 && e.deltaY < 0) return
-    if(uniforms.uDeltaWheel <= - 100 && e.deltaY > 0) return
+function onWheelScroll(e) {
+    if (uniforms.uDeltaWheel >= 50 && e.deltaY < 0) return
+    if (uniforms.uDeltaWheel <= -50 && e.deltaY > 0) return
     uniforms.uDeltaWheel -= e.deltaY * 0.02;
 }
 
@@ -170,9 +324,12 @@ function onWheelScroll(e){
 function init() {
     initDimensions();
     initUniforms();
+    initGrid()
     initApp();
-    initEvents();
     initBackground();
+    initContainer();
+    initRectsAndImages();
+    initEvents();
     initDistortionFilter();
 }
 

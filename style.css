@@ -44,7 +44,8 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  margin: 0; /* Remove default margin */
-
+  padding: 30px;
+  background-color: #051231;
+  margin: 0;
   font-size: calc(50/16*1rem);
 }

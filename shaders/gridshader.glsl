@@ -7,6 +7,7 @@ precision mediump float;
 
 uniform vec2 uPointerDiff;
 uniform float uDeltaWheel;
+uniform float uTime;
 
 // This function returns 1 if `coord` correspond to a grid line, 0 otherwise
 float isGridLine (vec2 coord) {
@@ -22,10 +23,10 @@ float isGridLine (vec2 coord) {
 void main () {
   // Coordinates minus the `uPointerDiff` value
   vec2 coord = gl_FragCoord.xy - uPointerDiff;
-  // Set `color` to black
-  vec3 color = vec3(0.0);
-  // If it is a grid line, change blue channel to 0.3
-  color.b = isGridLine(coord) * 0.8;
-  // Assing the final rgba color to `gl_FragColor`
+  coord.x -= uTime;
+  // Background color here
+  vec3 color = vec3(0.1,0.1,0.3);
+  // Grid color here
+  // color.r = isGridLine(coord) * 0.8;
   gl_FragColor = vec4(color, 1.0);
 }
