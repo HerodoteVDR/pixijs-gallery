@@ -123,9 +123,9 @@ function initRectsAndImages() {
     rects.forEach(rect => {
 
         const gifUrl = "https://media3.giphy.com/media/26gsr1DpFvpzXNtFm/giphy.gif?cid=ecf05e47slf8uig8bjlr4sgl9wnlngw1ue04lzz2g3e4z4b4&ep=v1_gifs_search&rid=giphy.gif&ct=g"
-        // drawGif(gifUrl, rect);
+        drawGif(gifUrl, rect);
         // drawRect(0xffffff, rect)
-        drawImage(rect);
+        // drawImage(rect);
     })
 }
 
@@ -142,10 +142,6 @@ function drawRect(color, rect) {
 }
 
 function drawImage(rect) {
-
-    const graphics = new PIXI.Graphics()
-    graphics.beginFill(0x000000)
-
     const image = new PIXI.Sprite();
 
     image.x = rect.x * gridSize;
@@ -153,19 +149,24 @@ function drawImage(rect) {
     image.width = rect.w * gridSize - imagePadding;
     image.height = rect.h * gridSize - imagePadding;
 
-    image.alpha = 1
+    image.alpha = 1;
     images.push(image);
 
-    graphics.drawRect(image.x, image.y, image.width, image.height)
-    graphics.endFill();
+    // const mask = new PIXI.Graphics();
+    // mask.beginFill(0xffffff);
+    // mask.drawRect(
+    //     rect.x * gridSize,
+    //     rect.y * gridSize,
+    //     rect.w * gridSize - imagePadding,
+    //     rect.h * gridSize - imagePadding
+    // );
+    // mask.endFill();
+    //
+    // image.mask = mask;
 
-
-    container.addChild(graphics);
-
-    images.forEach(image => {
-        container.addChild(image)
-    })
+    container.addChild(image);
 }
+
 
 function drawGif(url, rect) {
     const sprite = new PIXI.AnimatedSprite.fromImages([url]);
@@ -207,8 +208,8 @@ function checkRectsAndImages() {
         const image = images[index]
         if (rectIntersectsWithViewport(rect)) {
             if (!rect.discovered) {
-                rect.discovered = true
-                loadTexture(index)
+                rect.discovered = true;
+                loadTexture(index);
             }
         }
 
@@ -218,10 +219,7 @@ function checkRectsAndImages() {
 // Check if a rect intersects the viewport
 function rectIntersectsWithViewport(rect) {
     return (
-        rect.x * gridSize + container.x <= width &&
-        0 <= (rect.x + rect.w) * gridSize + container.x &&
-        rect.y * gridSize + container.y <= height &&
-        0 <= (rect.y + rect.h) * gridSize + container.y
+        1
     )
 }
 
