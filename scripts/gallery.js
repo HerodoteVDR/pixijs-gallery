@@ -20,7 +20,8 @@ const imagePadding = 20;
 
 function initDimensions() {
     width = document.getElementById("gallery-container").offsetWidth;
-    height = 800;
+    // height = document.getElementById("gallery-container").offsetHeight;
+    height = window.innerHeight;
     diffX = 0
     diffY = 0
 }
