@@ -41,6 +41,5 @@ void main () {
   float green = texture2D(uSampler, computeUV(uv, k, kcube)).g;
   float blue = texture2D(uSampler, computeUV(uv, k - offset, kcube)).b;
 
-  // Assing the final rgba color to `gl_FragColor`
   gl_FragColor = vec4(red, green, blue, 1.0);
 }

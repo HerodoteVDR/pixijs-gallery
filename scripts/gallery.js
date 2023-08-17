@@ -135,12 +135,14 @@ function initContainer() {
 // So far, we will only add rectangles
 function initRectsAndImages() {
     for (const rect of rects) {
-        //
         const gifUrl = "./src/gif/funny.gif"
-
         if (randomInRange(0, 3) < 2) drawMp4(rect, "./src/mp4/luffy.mp4");
         else drawImage(rect, "./src/jpg/op.jpg", "./src/jpg/op2.png", "./src/jpg/op3.jpg");
     }
+
+    const container2 = container;
+    container2.x += 500;
+
 }
 
 function drawImage(rect, urlV, urlH, urlC) {
@@ -184,8 +186,6 @@ function drawMp4(rect, url) {
     videoSprite.texture.baseTexture.source.muted = true;
 
     videoSprite.interactive = true;
-
-
     videoSprite.texture.baseTexture.source.currentTime = 0;
 
 
@@ -204,9 +204,17 @@ function initDistortionFilter() {
     app.stage.filters = [distortionFilter];
 }
 
+function initInfinityFilter(){
+    const infinityFragmentShader = resources['shaders/infinityShader.glsl'].data;
+    const infinityFilter = new PIXI.Filter(undefined, infinityFragmentShader, uniforms);
+    app.stage.filters = [infinityFilter];
+}
+
 let initPosX;
 let initPosY;
 
+
+let isWithinLimits = true;
 function initEvents() {
     app.stage.interactive = true
     app.stage
@@ -220,31 +228,49 @@ function initEvents() {
 
     app.ticker.add(() => {
 
-        let speedMultiplier = 0.05;
-        uniforms.uPointerDown += (pointerDownTarget - uniforms.uPointerDown) * 0.2 + 0.12
-        uniforms.uPointerDiff.x += (diffX - uniforms.uPointerDiff.x) * speedMultiplier;
-        uniforms.uPointerDiff.y += (diffY - uniforms.uPointerDiff.y) * speedMultiplier;
 
-        uniforms.uTime += 0 * isDown;
+            let speedMultiplier = 0.05;
+            uniforms.uPointerDown += (pointerDownTarget - uniforms.uPointerDown) * 0.2 + 0.12
+            uniforms.uPointerDiff.x += (diffX - uniforms.uPointerDiff.x) * speedMultiplier;
+            uniforms.uPointerDiff.y += (diffY - uniforms.uPointerDiff.y) * speedMultiplier;
 
-        container.x = uniforms.uPointerDiff.x - centerX - uniforms.uTime;
-        container.y = uniforms.uPointerDiff.y - centerY
+            console.log(diffY)
+            uniforms.uTime += 0 * isDown;
 
+            container.x = uniforms.uPointerDiff.x - centerX - uniforms.uTime;
+            container.y = uniforms.uPointerDiff.y - centerY
 
-        // Limits
-        if (container.x < -container.width) {
-            container.x = -container.width;
-        }
-        if (container.x > container.width) {
-            container.x = container.width;
-        }
-        if (container.y < -container.height) {
-            container.y = -container.height;
-        }
-        if (container.y > container.height) {
-            container.y = container.height;
-        }
-
+        // // Limits
+        // if (container.x < -container.width) {
+        //     isWithinLimits = false;
+        //     console.log(container.x + " x " + -container.width)
+        //     container.x = -centerX;
+        //     uniforms.uPointerDiff.x = 0;
+        //     diffX = 0;
+        //     uniforms.uTime = 0;
+        //     isWithinLimits = true;
+        // }
+        // if (container.x > container.width) {
+        //     isWithinLimits = false;
+        //     container.x = -centerX;
+        //     uniforms.uPointerDiff.x = 0;
+        //     diffX = 0;
+        //     isWithinLimits = true;
+        // }
+        // if (container.y < -container.height) {
+        //     isWithinLimits = false;
+        //     container.y = -centerY
+        //     uniforms.uPointerDiff.y = 0;
+        //     diffY = 0;
+        //     isWithinLimits = true;
+        // }
+        // if (container.y > container.height) {
+        //     isWithinLimits = false;
+        //     container.y = -centerY;
+        //     uniforms.uPointerDiff.y = 0;
+        //     diffY = 0;
+        //     isWithinLimits = true;
+        // }
     })
 }
 
@@ -297,10 +323,12 @@ function init() {
     initContainer();
     initRectsAndImages();
     initEvents();
+    // initInfinityFilter();
     initDistortionFilter();
 }
 
 PIXI.Loader.shared.add([
+    'shaders/infinityShader.glsl',
     'shaders/distortshader.glsl',
     'shaders/gridshader.glsl'
 ]).load(init);
