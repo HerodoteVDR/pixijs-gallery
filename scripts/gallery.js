@@ -99,12 +99,12 @@ function initBackground() {
 // Initialize the random grid layout
 function initGrid() {
     // Getting columns
-    gridColumnsCount = Math.ceil(width / gridSize)
+    gridColumnsCount = 8
     // Getting rows
-    gridRowsCount = Math.ceil(height / gridSize)
+    gridRowsCount = 8
     // Make the grid 5 times bigger than viewport
-    gridColumns = gridColumnsCount * 5
-    gridRows = gridRowsCount * 5
+    gridColumns = gridColumnsCount * 6
+    gridRows = gridRowsCount * 6
     // Create a new MasonryGrid instance with our settings
     grid = new MasonryGrid(gridSize, gridColumns, gridRows, gridMin)
     // Calculate the center position for the grid in the viewport
@@ -118,6 +118,17 @@ function initGrid() {
 function initContainer() {
     container = new PIXI.Container()
     app.stage.addChild(container)
+
+
+    const totalContainerWidth = container.width;
+    const totalContainerHeight = container.height;
+    // Calculer les coordonnées de départ pour centrer le conteneur
+    initPosX = centerX - (totalContainerWidth / 2);
+    initPosY = centerY - (totalContainerHeight / 2);
+
+    container.position.set(initPosX, initPosY);
+
+
 }
 
 // Add solid rectangles and images
@@ -125,68 +136,41 @@ function initContainer() {
 function initRectsAndImages() {
     for (const rect of rects) {
         //
-        const gifUrl ="./src/gif/funny.gif"
-        // drawGif( rect, gifUrl);
-        // drawRect(0xffffff, rect)
-        // drawImage(rect);
-        if(randomInRange(0, 3) < 1) drawMp4(rect, "./src/mp4/luffy.mp4");
-        else if(randomInRange(0,3)> 2) drawGif(rect, gifUrl);
-        else drawImage(rect)
+        const gifUrl = "./src/gif/funny.gif"
 
-
+        if (randomInRange(0, 3) < 2) drawMp4(rect, "./src/mp4/luffy.mp4");
+        else drawImage(rect, "./src/jpg/op.jpg", "./src/jpg/op2.png", "./src/jpg/op3.jpg");
     }
 }
 
-function drawRect(color, rect) {
-    const graphics = new PIXI.Graphics()
-    graphics.beginFill(color)
-    graphics.drawRect(
-        rect.x * gridSize,
-        rect.y * gridSize,
-        rect.w * gridSize - imagePadding,
-        rect.h * gridSize - imagePadding)
-    graphics.endFill()
-    container.addChild(graphics)
-}
+function drawImage(rect, urlV, urlH, urlC) {
+    let imageUrl;
 
-function drawImage(rect) {
-    const image = new PIXI.Sprite();
+    if (rect.w > rect.h) {
+        imageUrl = urlH;
+    } else if (rect.h > rect.w) {
+        imageUrl = urlV;
+    } else {
+        imageUrl = urlC;
+    }
 
-    image.x = rect.x * gridSize;
-    image.y = rect.y * gridSize;
-    image.width = rect.w * gridSize - imagePadding;
-    image.height = rect.h * gridSize - imagePadding;
+    const image = new Image();
+    image.src = imageUrl;
 
-    image.alpha = 1;
-    images.push(image);
-    //
-    // const mask = new PIXI.Graphics();
-    // mask.beginFill(0xffffff);
-    // mask.drawRect(
-    //     rect.x * gridSize,
-    //     rect.y * gridSize,
-    //     rect.w * gridSize - imagePadding,
-    //     rect.h * gridSize - imagePadding
-    // );
-    // mask.endFill();
-    //
-    // image.mask = mask;
+    image.addEventListener('load', () => {
+        const imageTexture = PIXI.Texture.from(image);
 
-    container.addChild(image);
-}
+        const sprite = new PIXI.Sprite(imageTexture);
 
-function drawGif(rect, url) {
-    const texture = new PIXI.Texture.from(url);
-    const sprite = new PIXI.Sprite(texture);
-    sprite.x = rect.x * gridSize;
-    sprite.y = rect.y * gridSize;
-    sprite.width = rect.w * gridSize - imagePadding;
-    sprite.height = rect.h * gridSize - imagePadding;
-    sprite.loop = true; // Loop the animation
-    sprite.animationSpeed = 2.; // Set the animation speed
+        sprite.x = rect.x * gridSize;
+        sprite.y = rect.y * gridSize;
+        sprite.width = rect.w * gridSize - imagePadding;
+        sprite.height = rect.h * gridSize - imagePadding;
 
-    container.addChild(sprite);
-    animatedSprites.push(sprite);
+        sprite.alpha = 1;
+        images.push(sprite);
+        container.addChild(sprite);
+    });
 }
 
 function drawMp4(rect, url) {
@@ -197,18 +181,14 @@ function drawMp4(rect, url) {
     videoSprite.y = rect.y * gridSize;
     videoSprite.width = rect.w * gridSize - imagePadding;
     videoSprite.height = rect.h * gridSize - imagePadding;
-// Ajouter un événement de clic pour démarrer/arrêter la vidéo
+    videoSprite.texture.baseTexture.source.muted = true;
+
     videoSprite.interactive = true;
-    videoSprite.on('click', () => {
-        if (videoSprite.texture.baseTexture.source.paused) {
-            videoSprite.texture.baseTexture.source.play();
-        } else {
-            videoSprite.texture.baseTexture.source.pause();
-        }
-    });
-    videoSprite.texture.baseTexture.source.addEventListener('canplaythrough', () => {
-        videoSprite.texture.baseTexture.source.play();
-    });
+
+
+    videoSprite.texture.baseTexture.source.currentTime = 0;
+
+
     // Ajouter un événement pour réinitialiser la vidéo lorsqu'elle se termine
     videoSprite.texture.baseTexture.source.addEventListener('ended', () => {
         videoSprite.texture.baseTexture.source.currentTime = 0;
@@ -217,39 +197,6 @@ function drawMp4(rect, url) {
     container.addChild(videoSprite);
 }
 
-function loadTexture(i, url) {
-    const image = images[i];
-
-
-    const rect = rects[i];
-
-    const {signal} = rect.controller = new AbortController();
-
-    fetch(url, {signal}).then(r => {
-
-        const id = r.url.split('?')[0]
-
-        imagesUrls[id] = true
-        image.texture = PIXI.Texture.from(r.url)
-        rect.loaded = true
-    }).catch(() => {
-        console.log(signal)
-    })
-}
-
-
-function checkRectsAndImages() {
-    rects.forEach((rect, index) => {
-        const image = images[index]
-        if (rectIntersectsWithViewport(rect)) {
-            if (!rect.discovered) {
-                rect.discovered = true;
-                loadTexture(index, "https://images.prismic.io/20stm/f3800fa3-6042-45be-9b31-ca940fc76664_Thumbnail_Small_Things_Large.png?auto=compress,format&rect=0,100,1500,881&w=1260&h=740");
-            }
-        }
-
-    })
-}
 
 // Check if a rect intersects the viewport
 function rectIntersectsWithViewport(rect) {
@@ -260,12 +207,12 @@ function rectIntersectsWithViewport(rect) {
 
 function initDistortionFilter() {
     const distortionFragmentShaderCode = resources['shaders/distortshader.glsl'].data;
-
     const distortionFilter = new PIXI.Filter(undefined, distortionFragmentShaderCode, uniforms);
-
     app.stage.filters = [distortionFilter];
 }
 
+let initPosX;
+let initPosY;
 
 function initEvents() {
     app.stage.interactive = true
@@ -277,30 +224,32 @@ function initEvents() {
 
     view.addEventListener('wheel', onWheelScroll);
 
-    // Animation loop
-    // Code here will be executed on every animation frame
+
     app.ticker.add(() => {
-        // Multiply the values by a coefficient to get a smooth animation
+        console.log(container.x + 'width' + container.width)
 
-        time += 0.1;
-        let speedMultiplier = 0.05;
-        uniforms.uPointerDown += (pointerDownTarget - uniforms.uPointerDown) * 0.2 + 0.12
-        uniforms.uPointerDiff.x += (diffX - uniforms.uPointerDiff.x) * speedMultiplier;
-        uniforms.uPointerDiff.y += (diffY - uniforms.uPointerDiff.y) * speedMultiplier;
+            let speedMultiplier = 0.05;
+            uniforms.uPointerDown += (pointerDownTarget - uniforms.uPointerDown) * 0.2 + 0.12
+            uniforms.uPointerDiff.x += (diffX - uniforms.uPointerDiff.x) * speedMultiplier;
+            uniforms.uPointerDiff.y += (diffY - uniforms.uPointerDiff.y) * speedMultiplier;
+
+            uniforms.uTime += 0 * isDown;
+
+            container.x = uniforms.uPointerDiff.x - centerX - uniforms.uTime;
+            container.y = uniforms.uPointerDiff.y - centerY
 
 
-        uniforms.uTime += 1 * isDown;
 
-        container.x = uniforms.uPointerDiff.x - centerX - uniforms.uTime;
-        container.y = uniforms.uPointerDiff.y;
+        // limits
+        if(container.x < -container.width){
+            container.x = -500;
+            uniforms.uPointerDiff.x = 0;
+            diffX = 0;
+        }
 
-        container.scale.set(uniforms.uDeltaWheel * 0.01 + 1);
-
-        checkRectsAndImages()
     })
 }
 
-// Set initial values for uniforms
 function initUniforms() {
     uniforms = {
         uResolution: new PIXI.Point(width, height),
@@ -320,7 +269,6 @@ function onPointerDown(e) {
     pointerDiffStart = uniforms.uPointerDiff.clone()
 }
 
-// reset position of mouse
 function onPointerUp() {
     console.log('up')
     pointerDownTarget = 0
@@ -342,7 +290,6 @@ function onWheelScroll(e) {
     uniforms.uDeltaWheel -= e.deltaY * 0.02;
 }
 
-// Init everything
 function init() {
     initDimensions();
     initUniforms();
@@ -355,7 +302,6 @@ function init() {
     initDistortionFilter();
 }
 
-// Load resources, then init the app
 PIXI.Loader.shared.add([
     'shaders/distortshader.glsl',
     'shaders/gridshader.glsl'
