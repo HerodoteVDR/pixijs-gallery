@@ -59,9 +59,9 @@ let pointerDiffStart = new PIXI.Point()
 let width, height, app, background, uniforms, diffX, diffY;
 
 // Image grid and container
-const gridSize = 100
+const gridSize = 25
 const gridMin = 3
-const imagePadding = 20
+const imagePadding = 5
 let gridColumnsCount, gridRowsCount, gridColumns, gridRows, grid
 let widthRest, heightRest, centerX, centerY
 let rects, images = [], imagesUrls = {}, animatedSprites = [];
@@ -98,16 +98,14 @@ function initBackground() {
 
 // Initialize the random grid layout
 function initGrid() {
-    // Getting columns
-    gridColumnsCount = 8
-    // Getting rows
-    gridRowsCount = 8
-    // Make the grid 5 times bigger than viewport
-    gridColumns = gridColumnsCount * 6
-    gridRows = gridRowsCount * 6
-    // Create a new MasonryGrid instance with our settings
-    grid = new MasonryGrid(gridSize, gridColumns, gridRows, gridMin)
-    // Calculate the center position for the grid in the viewport
+    // Calculer le nombre de colonnes et de lignes en fonction de la taille de l'écran
+    gridColumnsCount = Math.floor(width / gridSize);
+    gridRowsCount = Math.floor(height / gridSize);
+
+    gridColumns = gridColumnsCount;
+    gridRows = gridRowsCount;
+    grid = new MasonryGrid(gridSize, gridColumns, gridRows, gridMin);
+
     widthRest = Math.ceil(gridColumnsCount * gridSize - width)
     heightRest = Math.ceil(gridRowsCount * gridSize - height)
     centerX = (gridColumns * gridSize / 2) - (gridColumnsCount * gridSize / 2)
@@ -116,21 +114,22 @@ function initGrid() {
 }
 
 function initContainer() {
-    container = new PIXI.Container()
-    app.stage.addChild(container)
+    container = new PIXI.Container();
+    app.stage.addChild(container);
 
-
-    const totalContainerWidth = container.width;
-    const totalContainerHeight = container.height;
+    // Utiliser les dimensions de la fenêtre ajustées
+    const totalContainerWidth = gridColumnsCount * gridSize;
+    const totalContainerHeight = gridRowsCount * gridSize;
     // Calculer les coordonnées de départ pour centrer le conteneur
-    initPosX = centerX - (totalContainerWidth / 2);
-    initPosY = centerY - (totalContainerHeight / 2);
+    initPosX = (width - totalContainerWidth) / 2;
+    initPosY = (height - totalContainerHeight) / 2;
+
+    // Ajouter le padding
+    initPosX += imagePadding;
+    initPosY += imagePadding;
 
     container.position.set(initPosX, initPosY);
-
-
 }
-
 // Add solid rectangles and images
 // So far, we will only add rectangles
 function initRectsAndImages() {
@@ -235,10 +234,10 @@ function initEvents() {
             uniforms.uPointerDiff.y += (diffY - uniforms.uPointerDiff.y) * speedMultiplier;
 
             console.log(diffY)
-            uniforms.uTime += 0 * isDown;
-
-            container.x = uniforms.uPointerDiff.x - centerX - uniforms.uTime;
-            container.y = uniforms.uPointerDiff.y - centerY
+            // uniforms.uTime += 0 * isDown;
+            //
+            // container.x = uniforms.uPointerDiff.x - centerX - uniforms.uTime;
+            // container.y = uniforms.uPointerDiff.y - centerY
 
         // // Limits
         // if (container.x < -container.width) {
@@ -323,8 +322,8 @@ function init() {
     initContainer();
     initRectsAndImages();
     initEvents();
-    // initInfinityFilter();
-    initDistortionFilter();
+    initInfinityFilter();
+    // initDistortionFilter();
 }
 
 PIXI.Loader.shared.add([

@@ -16,7 +16,7 @@ void main () {
 
 
     // Opérations sur les coordonnées de texture
-    uv = fract(uv * 1.5);
+    uv = fract(uv * 0.5);
 
     // Récupérer la couleur de la texture
     vec4 col = texture2D(uSampler, uv);
