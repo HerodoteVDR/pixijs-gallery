@@ -198,13 +198,6 @@ function drawMp4(rect, url) {
 }
 
 
-// Check if a rect intersects the viewport
-function rectIntersectsWithViewport(rect) {
-    return (
-        1
-    )
-}
-
 function initDistortionFilter() {
     const distortionFragmentShaderCode = resources['shaders/distortshader.glsl'].data;
     const distortionFilter = new PIXI.Filter(undefined, distortionFragmentShaderCode, uniforms);
@@ -226,25 +219,30 @@ function initEvents() {
 
 
     app.ticker.add(() => {
-        console.log(container.x + 'width' + container.width)
 
-            let speedMultiplier = 0.05;
-            uniforms.uPointerDown += (pointerDownTarget - uniforms.uPointerDown) * 0.2 + 0.12
-            uniforms.uPointerDiff.x += (diffX - uniforms.uPointerDiff.x) * speedMultiplier;
-            uniforms.uPointerDiff.y += (diffY - uniforms.uPointerDiff.y) * speedMultiplier;
+        let speedMultiplier = 0.05;
+        uniforms.uPointerDown += (pointerDownTarget - uniforms.uPointerDown) * 0.2 + 0.12
+        uniforms.uPointerDiff.x += (diffX - uniforms.uPointerDiff.x) * speedMultiplier;
+        uniforms.uPointerDiff.y += (diffY - uniforms.uPointerDiff.y) * speedMultiplier;
 
-            uniforms.uTime += 0 * isDown;
+        uniforms.uTime += 0 * isDown;
 
-            container.x = uniforms.uPointerDiff.x - centerX - uniforms.uTime;
-            container.y = uniforms.uPointerDiff.y - centerY
-
+        container.x = uniforms.uPointerDiff.x - centerX - uniforms.uTime;
+        container.y = uniforms.uPointerDiff.y - centerY
 
 
-        // limits
-        if(container.x < -container.width){
-            container.x = -500;
-            uniforms.uPointerDiff.x = 0;
-            diffX = 0;
+        // Limits
+        if (container.x < -container.width) {
+            container.x = -container.width;
+        }
+        if (container.x > container.width) {
+            container.x = container.width;
+        }
+        if (container.y < -container.height) {
+            container.y = -container.height;
+        }
+        if (container.y > container.height) {
+            container.y = container.height;
         }
 
     })
