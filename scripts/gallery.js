@@ -59,9 +59,9 @@ let pointerDiffStart = new PIXI.Point()
 let width, height, app, background, uniforms, diffX, diffY;
 
 // Image grid and container
-const gridSize = 25
-const gridMin = 3
-const imagePadding = 5
+const gridSize = 60
+const gridMin = 2
+const imagePadding = 15
 let gridColumnsCount, gridRowsCount, gridColumns, gridRows, grid
 let widthRest, heightRest, centerX, centerY
 let rects, images = [], imagesUrls = {}, animatedSprites = [];
@@ -96,11 +96,18 @@ function initBackground() {
     app.stage.addChild(background);
 }
 
+function initInfinityFilter() {
+    const infinityFragmentShader = resources['shaders/infinityShader.glsl'].data;
+    const infinityFilter = new PIXI.Filter(undefined, infinityFragmentShader, uniforms);
+    app.stage.filters.push(infinityFilter);
+}
+
+
 // Initialize the random grid layout
 function initGrid() {
     // Calculer le nombre de colonnes et de lignes en fonction de la taille de l'écran
-    gridColumnsCount = Math.floor(width / gridSize);
-    gridRowsCount = Math.floor(height / gridSize);
+    gridColumnsCount = Math.floor(width / gridSize) + 1.2;
+    gridRowsCount = Math.floor(height / gridSize) + 1.3;
 
     gridColumns = gridColumnsCount;
     gridRows = gridRowsCount;
@@ -118,25 +125,23 @@ function initContainer() {
     app.stage.addChild(container);
 
     // Utiliser les dimensions de la fenêtre ajustées
-    const totalContainerWidth = gridColumnsCount * gridSize;
-    const totalContainerHeight = gridRowsCount * gridSize;
+    const totalGridWidth = gridColumnsCount * gridSize;
+    const totalGridHeight = gridRowsCount * gridSize;
+
     // Calculer les coordonnées de départ pour centrer le conteneur
-    initPosX = (width - totalContainerWidth) / 2;
-    initPosY = (height - totalContainerHeight) / 2;
+    const centerX = (width - totalGridWidth) / 2 - 520;
+    const centerY = (height - totalGridHeight) / 2 - 20;
 
-    // Ajouter le padding
-    initPosX += imagePadding;
-    initPosY += imagePadding;
-
-    container.position.set(initPosX, initPosY);
+    container.position.set(centerX, centerY);
 }
+
 // Add solid rectangles and images
 // So far, we will only add rectangles
 function initRectsAndImages() {
     for (const rect of rects) {
         const gifUrl = "./src/gif/funny.gif"
-        if (randomInRange(0, 3) < 2) drawMp4(rect, "./src/mp4/luffy.mp4");
-        else drawImage(rect, "./src/jpg/op.jpg", "./src/jpg/op2.png", "./src/jpg/op3.jpg");
+        if (randomInRange(0, 3) < 2) drawMp4(rect, "./src/mp4/ver01.mp4", "./src/mp4/ver02.mp4", "./src/mp4/hor01.mp4", "./src/mp4/hor02.mp4", "./src/mp4/square.mp4");
+        else drawImage(rect, "./src/jpg/ver01.png", "./src/jpg/ver02.png", "./src/jpg/hor01.png", "./src/jpg/hor02.png", "./src/jpg/square.png");
     }
 
     const container2 = container;
@@ -144,13 +149,21 @@ function initRectsAndImages() {
 
 }
 
-function drawImage(rect, urlV, urlH, urlC) {
+function drawImage(rect, urlV1, urlV2, urlH1, urlH2, urlC) {
     let imageUrl;
 
     if (rect.w > rect.h) {
-        imageUrl = urlH;
+        if (rect.w / 2 === rect.h) {
+            imageUrl = urlH1
+        } else {
+            imageUrl = urlH2
+        }
     } else if (rect.h > rect.w) {
-        imageUrl = urlV;
+        if (rect.h / 2 === rect.w) {
+            imageUrl = urlV1;
+        } else {
+            imageUrl = urlV2;
+        }
     } else {
         imageUrl = urlC;
     }
@@ -174,8 +187,28 @@ function drawImage(rect, urlV, urlH, urlC) {
     });
 }
 
-function drawMp4(rect, url) {
-    const videoTexture = PIXI.Texture.from(url);
+function drawMp4(rect, urlV1, urlV2, urlH1, urlH2, urlC) {
+
+    let videoUrl;
+
+    if (rect.w > rect.h) {
+        if (rect.w / 2 === rect.h) {
+            console.log('happens')
+            videoUrl = urlH1
+        } else {
+            videoUrl = urlH2
+        }
+    } else if (rect.h > rect.w) {
+        if (rect.h / 2>=rect.w) {
+            videoUrl = urlV1;
+        } else {
+            videoUrl = urlV2;
+        }
+    } else {
+        videoUrl = urlC;
+    }
+
+    const videoTexture = PIXI.Texture.from(videoUrl);
     const videoSprite = new PIXI.Sprite(videoTexture);
 
     videoSprite.x = rect.x * gridSize;
@@ -196,24 +229,19 @@ function drawMp4(rect, url) {
     container.addChild(videoSprite);
 }
 
-
 function initDistortionFilter() {
     const distortionFragmentShaderCode = resources['shaders/distortshader.glsl'].data;
     const distortionFilter = new PIXI.Filter(undefined, distortionFragmentShaderCode, uniforms);
-    app.stage.filters = [distortionFilter];
+    app.stage.filters.push(distortionFilter);
 }
 
-function initInfinityFilter(){
-    const infinityFragmentShader = resources['shaders/infinityShader.glsl'].data;
-    const infinityFilter = new PIXI.Filter(undefined, infinityFragmentShader, uniforms);
-    app.stage.filters = [infinityFilter];
-}
 
 let initPosX;
 let initPosY;
 
 
 let isWithinLimits = true;
+
 function initEvents() {
     app.stage.interactive = true
     app.stage
@@ -228,48 +256,11 @@ function initEvents() {
     app.ticker.add(() => {
 
 
-            let speedMultiplier = 0.05;
-            uniforms.uPointerDown += (pointerDownTarget - uniforms.uPointerDown) * 0.2 + 0.12
-            uniforms.uPointerDiff.x += (diffX - uniforms.uPointerDiff.x) * speedMultiplier;
-            uniforms.uPointerDiff.y += (diffY - uniforms.uPointerDiff.y) * speedMultiplier;
-
-            console.log(diffY)
-            // uniforms.uTime += 0 * isDown;
-            //
-            // container.x = uniforms.uPointerDiff.x - centerX - uniforms.uTime;
-            // container.y = uniforms.uPointerDiff.y - centerY
-
-        // // Limits
-        // if (container.x < -container.width) {
-        //     isWithinLimits = false;
-        //     console.log(container.x + " x " + -container.width)
-        //     container.x = -centerX;
-        //     uniforms.uPointerDiff.x = 0;
-        //     diffX = 0;
-        //     uniforms.uTime = 0;
-        //     isWithinLimits = true;
-        // }
-        // if (container.x > container.width) {
-        //     isWithinLimits = false;
-        //     container.x = -centerX;
-        //     uniforms.uPointerDiff.x = 0;
-        //     diffX = 0;
-        //     isWithinLimits = true;
-        // }
-        // if (container.y < -container.height) {
-        //     isWithinLimits = false;
-        //     container.y = -centerY
-        //     uniforms.uPointerDiff.y = 0;
-        //     diffY = 0;
-        //     isWithinLimits = true;
-        // }
-        // if (container.y > container.height) {
-        //     isWithinLimits = false;
-        //     container.y = -centerY;
-        //     uniforms.uPointerDiff.y = 0;
-        //     diffY = 0;
-        //     isWithinLimits = true;
-        // }
+        let speedMultiplier = 0.05;
+        uniforms.uPointerDown += (pointerDownTarget - uniforms.uPointerDown) * 0.2 + 0.12
+        uniforms.uPointerDiff.x += (diffX - uniforms.uPointerDiff.x) * speedMultiplier;
+        uniforms.uPointerDiff.y += (diffY - uniforms.uPointerDiff.y) * speedMultiplier;
+        uniforms.uTime += 1 * isDown;
     })
 }
 
@@ -322,8 +313,10 @@ function init() {
     initContainer();
     initRectsAndImages();
     initEvents();
+    app.stage.filters = [];
     initInfinityFilter();
-    // initDistortionFilter();
+
+    initDistortionFilter();
 }
 
 PIXI.Loader.shared.add([

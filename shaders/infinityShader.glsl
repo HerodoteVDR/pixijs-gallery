@@ -7,20 +7,14 @@ uniform float uPointerDown;
 uniform sampler2D uSampler;
 uniform vec2 uPointerDiff;
 
+uniform float uTime;
 
-varying vec2 vTextureCoord; // Assurez-vous que cela est correctement défini dans le vertex shader
+varying vec2 vTextureCoord;
 
 void main () {
-    // Utilisation des coordonnées de texture interpolées
-    vec2 uv = vTextureCoord - uPointerDiff * 0.01;
-
-
-    // Opérations sur les coordonnées de texture
+    vec2 uv = vTextureCoord - uPointerDiff * 0.005;
+    uv.x += uTime * 0.001;
     uv = fract(uv * 0.5);
-
-    // Récupérer la couleur de la texture
     vec4 col = texture2D(uSampler, uv);
-
-    // Afficher la couleur d'entrée
     gl_FragColor = col;
 }

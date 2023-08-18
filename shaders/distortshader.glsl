@@ -33,13 +33,13 @@ void main () {
   // Multiplied by `uPointerDown`, a value between 0 and 1
   float k = -1.0 * uPointerDown;
   float kcube = 0.5 * uPointerDown;
-  float offset = 0.02 * uPointerDown;
+  float offset = 0.01 * uPointerDown;
 
   // Get each channel's color using the texture provided by PixiJS
   // and the `computeUV` function
   float red = texture2D(uSampler, computeUV(uv, k + offset, kcube)).r;
   float green = texture2D(uSampler, computeUV(uv, k, kcube)).g;
-  float blue = texture2D(uSampler, computeUV(uv, k - offset, kcube)).b;
+  float blue = texture2D(uSampler, computeUV(uv, k - offset , kcube)).b;
 
   gl_FragColor = vec4(red, green, blue, 1.0);
 }
