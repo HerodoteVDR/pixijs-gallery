@@ -59,15 +59,18 @@ let pointerDiffStart = new PIXI.Point()
 let width, height, app, background, uniforms, diffX, diffY;
 
 // Image grid and container
-const gridSize = 25
-const gridMin = 3
-const imagePadding = 5
+const gridSize = 80
+const gridMin = 2
+const imagePadding = 15
 let gridColumnsCount, gridRowsCount, gridColumns, gridRows, grid
 let widthRest, heightRest, centerX, centerY
 let rects, images = [], imagesUrls = {}, animatedSprites = [];
 let container;
 
-let time;
+// shader rendering
+let fboInfinite, fboDistortion;
+
+
 
 
 function initDimensions() {
@@ -96,11 +99,26 @@ function initBackground() {
     app.stage.addChild(background);
 }
 
+function initInfinityFilter(){
+    const infinityFragmentShader = resources['shaders/infinityShader.glsl'].data;
+    const infinityFilter = new PIXI.Filter(undefined, infinityFragmentShader, uniforms);
+    app.stage.filters = [infinityFilter];
+}
+
+
+function initDistortionFilter() {
+    const distortionFragmentShaderCode = resources['shaders/distortshader.glsl'].data;
+    const distortionFilter = new PIXI.Filter(undefined, distortionFragmentShaderCode, uniforms);
+    app.stage.filters = [distortionFilter];
+}
+
+
+
 // Initialize the random grid layout
 function initGrid() {
     // Calculer le nombre de colonnes et de lignes en fonction de la taille de l'écran
-    gridColumnsCount = Math.floor(width / gridSize);
-    gridRowsCount = Math.floor(height / gridSize);
+    gridColumnsCount = Math.floor(width / gridSize) + 1.2;
+    gridRowsCount = Math.floor(height / gridSize) + 1.3;
 
     gridColumns = gridColumnsCount;
     gridRows = gridRowsCount;
@@ -118,17 +136,14 @@ function initContainer() {
     app.stage.addChild(container);
 
     // Utiliser les dimensions de la fenêtre ajustées
-    const totalContainerWidth = gridColumnsCount * gridSize;
-    const totalContainerHeight = gridRowsCount * gridSize;
+    const totalGridWidth = gridColumnsCount * gridSize;
+    const totalGridHeight = gridRowsCount * gridSize;
+
     // Calculer les coordonnées de départ pour centrer le conteneur
-    initPosX = (width - totalContainerWidth) / 2;
-    initPosY = (height - totalContainerHeight) / 2;
+    const centerX = (width - totalGridWidth) / 2 - 520;
+    const centerY = (height - totalGridHeight) / 2 - 20;
 
-    // Ajouter le padding
-    initPosX += imagePadding;
-    initPosY += imagePadding;
-
-    container.position.set(initPosX, initPosY);
+    container.position.set(centerX, centerY);
 }
 // Add solid rectangles and images
 // So far, we will only add rectangles
@@ -197,18 +212,6 @@ function drawMp4(rect, url) {
 }
 
 
-function initDistortionFilter() {
-    const distortionFragmentShaderCode = resources['shaders/distortshader.glsl'].data;
-    const distortionFilter = new PIXI.Filter(undefined, distortionFragmentShaderCode, uniforms);
-    app.stage.filters = [distortionFilter];
-}
-
-function initInfinityFilter(){
-    const infinityFragmentShader = resources['shaders/infinityShader.glsl'].data;
-    const infinityFilter = new PIXI.Filter(undefined, infinityFragmentShader, uniforms);
-    app.stage.filters = [infinityFilter];
-}
-
 let initPosX;
 let initPosY;
 
@@ -232,9 +235,8 @@ function initEvents() {
             uniforms.uPointerDown += (pointerDownTarget - uniforms.uPointerDown) * 0.2 + 0.12
             uniforms.uPointerDiff.x += (diffX - uniforms.uPointerDiff.x) * speedMultiplier;
             uniforms.uPointerDiff.y += (diffY - uniforms.uPointerDiff.y) * speedMultiplier;
+            uniforms.uTime += 1 * isDown;
 
-            console.log(diffY)
-            // uniforms.uTime += 0 * isDown;
             //
             // container.x = uniforms.uPointerDiff.x - centerX - uniforms.uTime;
             // container.y = uniforms.uPointerDiff.y - centerY
