@@ -29,8 +29,6 @@ void main () {
   // Normalized coordinates
   vec2 uv = gl_FragCoord.xy / uResolution.xy;
 
-  // Settings for the effect
-  // Multiplied by `uPointerDown`, a value between 0 and 1
   float k = -1.0 * uPointerDown;
   float kcube = 0.9 * uPointerDown;
   float offset = 0.05 * uPointerDown;

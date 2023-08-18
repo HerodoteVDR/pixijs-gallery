@@ -69,6 +69,25 @@ let container;
 
 let time;
 
+// medias
+
+let allImages = [];
+
+let images01 = ["./src/01/jpg/hor01.png", "./src/01/jpg/hor02.png", "./src/01/jpg/ver01.png", "./src/01/jpg/ver02.png", "./src/01/jpg/square.png"]
+let images02 = ["./src/02/jpg/hor01.png", "./src/02/jpg/hor02.png", "./src/02/jpg/ver01.png", "./src/02/jpg/ver02.png", "./src/02/jpg/square.png"]
+allImages.push(images01, images02);
+
+let allVideos = [];
+let videos01 = ["./src/01/mp4/hor01.mp4", "./src/01/mp4/hor02.mp4", "./src/01/mp4/ver01.mp4", "./src/01/mp4/ver02.mp4", "./src/01/mp4/square.mp4"]
+let videos02 = ["./src/02/mp4/hor01.mp4", "./src/02/mp4/hor02.mp4", "./src/02/mp4/ver01.mp4", "./src/02/mp4/ver02.mp4", "./src/02/mp4/square.mp4"]
+allVideos.push(videos01, videos02);
+
+// html
+const title = document.querySelector(".splashscreen-title")
+console.log(title);
+let currentMedia = 0;
+title.textContent = "The Small Things";
+
 
 function initDimensions() {
     // width = document.getElementById("gallery-container").offsetWidth;
@@ -102,6 +121,12 @@ function initInfinityFilter() {
     app.stage.filters.push(infinityFilter);
 }
 
+function initScrollFilter() {
+    const scrollFragmentShader = resources['shaders/scrollShader.glsl'].data;
+    const scrollFilter = new PIXI.Filter(undefined, scrollFragmentShader, uniforms);
+    app.stage.filters.push(scrollFilter);
+}
+
 
 // Initialize the random grid layout
 function initGrid() {
@@ -124,48 +149,40 @@ function initContainer() {
     container = new PIXI.Container();
     app.stage.addChild(container);
 
-    // Utiliser les dimensions de la fenêtre ajustées
     const totalGridWidth = gridColumnsCount * gridSize;
     const totalGridHeight = gridRowsCount * gridSize;
 
-    // Calculer les coordonnées de départ pour centrer le conteneur
-    const centerX = (width - totalGridWidth) / 2 - 520;
-    const centerY = (height - totalGridHeight) / 2 - 20;
+    const centerX = (width - totalGridWidth) / 2 - imagePadding;
+    const centerY = (height - totalGridHeight) / 2 - imagePadding;
 
     container.position.set(centerX, centerY);
 }
 
-// Add solid rectangles and images
-// So far, we will only add rectangles
-function initRectsAndImages() {
+function initRectsAndImages(index) {
+    container.removeChildren();
     for (const rect of rects) {
-        const gifUrl = "./src/gif/funny.gif"
-        if (randomInRange(0, 3) < 2) drawMp4(rect, "./src/mp4/ver01.mp4", "./src/mp4/ver02.mp4", "./src/mp4/hor01.mp4", "./src/mp4/hor02.mp4", "./src/mp4/square.mp4");
-        else drawImage(rect, "./src/jpg/ver01.png", "./src/jpg/ver02.png", "./src/jpg/hor01.png", "./src/jpg/hor02.png", "./src/jpg/square.png");
+        if (randomInRange(0, 3) < 2) drawMp4(rect, allVideos, index);
+        else drawImage(rect, allImages, index);
     }
-
-    const container2 = container;
-    container2.x += 500;
-
 }
 
-function drawImage(rect, urlV1, urlV2, urlH1, urlH2, urlC) {
+function drawImage(rect, images, index) {
     let imageUrl;
 
     if (rect.w > rect.h) {
-        if (rect.w / 2 === rect.h) {
-            imageUrl = urlH1
+        if (rect.w / 2 >= rect.h) {
+            imageUrl = images[index][0]
         } else {
-            imageUrl = urlH2
+            imageUrl = images[index][1]
         }
     } else if (rect.h > rect.w) {
-        if (rect.h / 2 === rect.w) {
-            imageUrl = urlV1;
+        if (rect.h / 2 >= rect.w) {
+            imageUrl = images[index][2];
         } else {
-            imageUrl = urlV2;
+            imageUrl = images[index][3];
         }
     } else {
-        imageUrl = urlC;
+        imageUrl = images[index][4];
     }
 
     const image = new Image();
@@ -187,25 +204,25 @@ function drawImage(rect, urlV1, urlV2, urlH1, urlH2, urlC) {
     });
 }
 
-function drawMp4(rect, urlV1, urlV2, urlH1, urlH2, urlC) {
+function drawMp4(rect, videos, index) {
 
     let videoUrl;
 
     if (rect.w > rect.h) {
         if (rect.w / 2 === rect.h) {
             console.log('happens')
-            videoUrl = urlH1
+            videoUrl = videos[index][0];
         } else {
-            videoUrl = urlH2
+            videoUrl = videos[index][1]
         }
     } else if (rect.h > rect.w) {
-        if (rect.h / 2>=rect.w) {
-            videoUrl = urlV1;
+        if (rect.h / 2 >= rect.w) {
+            videoUrl = videos[index][2];
         } else {
-            videoUrl = urlV2;
+            videoUrl = videos[index][3];
         }
     } else {
-        videoUrl = urlC;
+        videoUrl = videos[index][4];
     }
 
     const videoTexture = PIXI.Texture.from(videoUrl);
@@ -235,13 +252,6 @@ function initDistortionFilter() {
     app.stage.filters.push(distortionFilter);
 }
 
-
-let initPosX;
-let initPosY;
-
-
-let isWithinLimits = true;
-
 function initEvents() {
     app.stage.interactive = true
     app.stage
@@ -252,14 +262,12 @@ function initEvents() {
 
     view.addEventListener('wheel', onWheelScroll);
 
-
     app.ticker.add(() => {
-
-
         let speedMultiplier = 0.05;
         uniforms.uPointerDown += (pointerDownTarget - uniforms.uPointerDown) * 0.2 + 0.12
         uniforms.uPointerDiff.x += (diffX - uniforms.uPointerDiff.x) * speedMultiplier;
         uniforms.uPointerDiff.y += (diffY - uniforms.uPointerDiff.y) * speedMultiplier;
+        uniforms.uDeltaWheel = deltaWheel * 0.05;
         uniforms.uTime += 1 * isDown;
     })
 }
@@ -298,10 +306,30 @@ function onPointerMove(e) {
     }
 }
 
+let deltaWheel = 0;
+
 function onWheelScroll(e) {
-    if (uniforms.uDeltaWheel >= 50 && e.deltaY < 0) return
-    if (uniforms.uDeltaWheel <= -50 && e.deltaY > 0) return
-    uniforms.uDeltaWheel -= e.deltaY * 0.02;
+    deltaWheel = e.deltaY;
+    if (e.deltaY >= 100) {
+        currentMedia++;
+        if (currentMedia >= allImages.length || currentMedia >= allVideos.length) {
+            currentMedia = 0;
+        }
+
+
+        switch (currentMedia) {
+            case 0:
+                title.textContent = "The Small Things";
+                break;
+            case 1:
+                title.textContent = "Your Project now";
+
+        }
+
+
+        initRectsAndImages(currentMedia)
+    }
+
 }
 
 function init() {
@@ -311,16 +339,17 @@ function init() {
     initApp();
     initBackground();
     initContainer();
-    initRectsAndImages();
+    initRectsAndImages(0);
     initEvents();
     app.stage.filters = [];
     initInfinityFilter();
-
     initDistortionFilter();
+    initScrollFilter();
 }
 
 PIXI.Loader.shared.add([
     'shaders/infinityShader.glsl',
     'shaders/distortshader.glsl',
-    'shaders/gridshader.glsl'
+    'shaders/gridshader.glsl',
+    'shaders/scrollShader.glsl'
 ]).load(init);
