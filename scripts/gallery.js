@@ -69,10 +69,30 @@ let container;
 
 // shader rendering
 let fboInfinite, fboDistortion;
+function initFBOs() {
+    fboInfinite = PIXI.RenderTexture.create();
+    fboDistortion = PIXI.RenderTexture.create();
+}
 
+function applyInfinityFilter() {
+    const infinityFragmentShader = resources['shaders/infinityShader.glsl'].data;
+    const infinityFilter = new PIXI.Filter(null, infinityFragmentShader, uniforms);
+    app.renderer.render(container, fboInfinite, false, infinityFilter);
+}
 
+function applyDistortionFilter() {
+    const distortionFragmentShaderCode = resources['shaders/distortshader.glsl'].data;
+    const distortionFilter = new PIXI.Filter(null, distortionFragmentShaderCode, uniforms);
+    app.renderer.render(container, fboDistortion, false, distortionFilter);
+}
 
-
+function renderFinalScene() {
+    const finalFilter = new PIXI.Filter(null, finalShaderCode, {
+        textureInfinity: fboInfinite,
+        textureDistortion: fboDistortion
+    });
+    app.stage.filters = [finalFilter];
+}
 function initDimensions() {
     // width = document.getElementById("gallery-container").offsetWidth;
     width = window.innerWidth;
@@ -99,18 +119,7 @@ function initBackground() {
     app.stage.addChild(background);
 }
 
-function initInfinityFilter(){
-    const infinityFragmentShader = resources['shaders/infinityShader.glsl'].data;
-    const infinityFilter = new PIXI.Filter(undefined, infinityFragmentShader, uniforms);
-    app.stage.filters = [infinityFilter];
-}
 
-
-function initDistortionFilter() {
-    const distortionFragmentShaderCode = resources['shaders/distortshader.glsl'].data;
-    const distortionFilter = new PIXI.Filter(undefined, distortionFragmentShaderCode, uniforms);
-    app.stage.filters = [distortionFilter];
-}
 
 
 
@@ -324,8 +333,10 @@ function init() {
     initContainer();
     initRectsAndImages();
     initEvents();
-    initInfinityFilter();
-    // initDistortionFilter();
+    initFBOs();
+    applyInfinityFilter();
+    applyDistortionFilter();
+    renderFinalScene();
 }
 
 PIXI.Loader.shared.add([
