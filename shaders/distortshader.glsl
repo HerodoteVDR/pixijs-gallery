@@ -32,8 +32,8 @@ void main () {
   // Settings for the effect
   // Multiplied by `uPointerDown`, a value between 0 and 1
   float k = -1.0 * uPointerDown;
-  float kcube = 0.5 * uPointerDown;
-  float offset = 0.01 * uPointerDown;
+  float kcube = 0.9 * uPointerDown;
+  float offset = 0.05 * uPointerDown;
 
   // Get each channel's color using the texture provided by PixiJS
   // and the `computeUV` function
