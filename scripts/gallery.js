@@ -162,15 +162,15 @@ function drawImage(rect, images, index) {
 
     if (rect.w > rect.h) {
         if (rect.w / 2 >= rect.h) {
-            imageUrl = images[index][0]
-        } else {
             imageUrl = images[index][1]
+        } else {
+            imageUrl = images[index][0]
         }
     } else if (rect.h > rect.w) {
         if (rect.h / 2 >= rect.w) {
-            imageUrl = images[index][2];
-        } else {
             imageUrl = images[index][3];
+        } else {
+            imageUrl = images[index][2];
         }
     } else {
         imageUrl = images[index][4];
@@ -202,15 +202,15 @@ function drawMp4(rect, videos, index) {
     if (rect.w > rect.h) {
         if (rect.w / 2 === rect.h) {
             console.log('happens')
-            videoUrl = videos[index][0];
+            videoUrl = videos[index][1];
         } else {
-            videoUrl = videos[index][1]
+            videoUrl = videos[index][0]
         }
     } else if (rect.h > rect.w) {
         if (rect.h / 2 >= rect.w) {
-            videoUrl = videos[index][2];
-        } else {
             videoUrl = videos[index][3];
+        } else {
+            videoUrl = videos[index][2];
         }
     } else {
         videoUrl = videos[index][4];
@@ -315,6 +315,7 @@ function onWheelScroll(e) {
         initRectsAndImages(currentMedia)
         scrollLimit = true;
     }
+    
 }
 
 setInterval(20, rep())
