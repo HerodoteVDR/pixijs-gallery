@@ -14,6 +14,8 @@ uniform sampler2D uSampler;
 void main () {
     vec2 uv = gl_FragCoord.xy / uResolution.xy;
 
+//    uv.x += uDeltaWheel;
+
     vec4 col = texture2D(uSampler, uv);
 
 

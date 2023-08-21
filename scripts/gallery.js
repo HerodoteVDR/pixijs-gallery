@@ -257,8 +257,8 @@ function initEvents() {
         uniforms.uPointerDown += (pointerDownTarget - uniforms.uPointerDown) * 0.2 + 0.12
         uniforms.uPointerDiff.x += (diffX - uniforms.uPointerDiff.x) * speedMultiplier;
         uniforms.uPointerDiff.y += (diffY - uniforms.uPointerDiff.y) * speedMultiplier;
-        uniforms.uDeltaWheel = deltaWheel * 0.05;
-        uniforms.uTime += 1 * isDown;
+
+        uniforms.uTime += isDown;
     })
 }
 
@@ -298,35 +298,45 @@ function onPointerMove(e) {
 
 let deltaWheel = 0;
 let isTimerRunning = false;
-let delayTime = 10000;
-
+let delayTime = 600;
+let scrolling = false;
 
 function onWheelScroll(e) {
     if (isTimerRunning) {
-        return; // Si le timer est en cours d'exécution, ne pas traiter l'événement
+        return;
     }
-
+    scrolling = true;
     deltaWheel = e.deltaY;
+
     if (e.deltaY >= 150) {
         currentMedia++;
         if (currentMedia >= allImages.length || currentMedia >= allVideos.length) {
             currentMedia = 0;
         }
-        switch (currentMedia) {
-            case 0:
-                title.textContent = "The Small Things";
-                break;
-            case 1:
-                title.textContent = "Your Project now";
-        }
+
+
+        gsap.to(title, {opacity:0, onComplete:changeTitle, duration:1})
+
+
+
         initRectsAndImages(currentMedia);
 
-        // Lancer le timer pour empêcher les appels successifs pendant le délai
         isTimerRunning = true;
         setTimeout(() => {
-            isTimerRunning = false; // Le délai est écoulé, permettre de nouveaux appels
+            isTimerRunning = false;
         }, delayTime);
     }
+}
+
+function changeTitle(){
+    switch (currentMedia) {
+        case 0:
+            title.textContent = "The Small Things";
+            break;
+        case 1:
+            title.textContent = "Your Project now";
+    }
+    gsap.to(title, {opacity:1, duration:1})
 }
 
 function init() {
