@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@pixi/gif": "^2.1.0",
+    "gsap": "^3.12.2",
     "omggif": "^1.0.10",
     "pixi.js": "^7.2.4"
   }

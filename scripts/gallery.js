@@ -1,4 +1,3 @@
-import {AnimatedGIF} from "@pixi/gif";
 
 class MasonryGrid {
     constructor(gridSize, gridColumns, gridRows, gridMin) {
@@ -80,7 +79,6 @@ allVideos.push(videos01, videos02);
 
 // html
 const title = document.querySelector(".splashscreen-title")
-console.log(title);
 let currentMedia = 0;
 title.textContent = "The Small Things";
 
@@ -196,12 +194,10 @@ function drawImage(rect, images, index) {
 }
 
 function drawMp4(rect, videos, index) {
-
     let videoUrl;
 
     if (rect.w > rect.h) {
         if (rect.w / 2 === rect.h) {
-            console.log('happens')
             videoUrl = videos[index][1];
         } else {
             videoUrl = videos[index][0]
@@ -219,17 +215,16 @@ function drawMp4(rect, videos, index) {
     const videoTexture = PIXI.Texture.from(videoUrl);
     const videoSprite = new PIXI.Sprite(videoTexture);
 
+    console.log(videoSprite)
+
     videoSprite.x = rect.x * gridSize;
     videoSprite.y = rect.y * gridSize;
     videoSprite.width = rect.w * gridSize - imagePadding;
     videoSprite.height = rect.h * gridSize - imagePadding;
+    console.log(videoSprite.texture.baseTexture.source)
     videoSprite.texture.baseTexture.source.muted = true;
 
     videoSprite.interactive = true;
-
-    console.log(videoSprite)
-    // videoSprite.texture.
-    // Ajouter un événement pour réinitialiser la vidéo lorsqu'elle se termine
     videoSprite.texture.baseTexture.source.addEventListener('ended', () => {
         videoSprite.texture.baseTexture.source.play();
     });
@@ -273,7 +268,6 @@ function initUniforms() {
 }
 
 function onPointerDown(e) {
-    console.log('down')
     const {x, y} = e.data.global
     pointerDownTarget = 1
     isDown = 0;
@@ -282,7 +276,6 @@ function onPointerDown(e) {
 }
 
 function onPointerUp() {
-    console.log('up')
     pointerDownTarget = 0
     isDown = 1;
 }
@@ -342,21 +335,28 @@ function changeTitle(){
 function init() {
     initDimensions();
     initUniforms();
-    initGrid()
+    initGrid();
     initApp();
-    initBackground();
-    initContainer();
-    initRectsAndImages(0);
-    initEvents();
-    app.stage.filters = [];
-    initInfinityFilter();
-    initDistortionFilter();
-    initScrollFilter();
+
+    // Load the necessary shaders and resources
+    PIXI.Loader.shared.add([
+        'shaders/infinityShader.glsl',
+        'shaders/distortshader.glsl',
+        'shaders/gridshader.glsl',
+        'shaders/scrollShader.glsl'
+    ]).load(() => {
+        // Once the resources are loaded, initialize the rest of your app
+        initBackground();
+        initContainer();
+        initRectsAndImages(0);
+        initEvents();
+        app.stage.filters = [];
+        initInfinityFilter();
+        initDistortionFilter();
+        initScrollFilter();
+    });
 }
 
-PIXI.Loader.shared.add([
-    'shaders/infinityShader.glsl',
-    'shaders/distortshader.glsl',
-    'shaders/gridshader.glsl',
-    'shaders/scrollShader.glsl'
-]).load(init);
+
+// Call the init function to start the app setup process
+init();
