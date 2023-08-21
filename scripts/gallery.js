@@ -1,6 +1,5 @@
 import {AnimatedGIF} from "@pixi/gif";
 
-
 class MasonryGrid {
     constructor(gridSize, gridColumns, gridRows, gridMin) {
         this.gridSize = gridSize
@@ -64,13 +63,10 @@ const gridMin = 2
 const imagePadding = 15
 let gridColumnsCount, gridRowsCount, gridColumns, gridRows, grid
 let widthRest, heightRest, centerX, centerY
-let rects, images = [], imagesUrls = {}, animatedSprites = [];
+let rects;
 let container;
 
-let time;
-
 // medias
-
 let allImages = [];
 
 let images01 = ["./src/01/jpg/hor01.png", "./src/01/jpg/hor02.png", "./src/01/jpg/ver01.png", "./src/01/jpg/ver02.png", "./src/01/jpg/square.png"]
@@ -90,9 +86,7 @@ title.textContent = "The Small Things";
 
 
 function initDimensions() {
-    // width = document.getElementById("gallery-container").offsetWidth;
     width = window.innerWidth;
-    // height = document.getElementById("gallery-container").offsetHeight;
     height = window.innerHeight;
     diffX = 0
     diffY = 0
@@ -105,7 +99,6 @@ function initApp() {
 }
 
 function initBackground() {
-    // Create a new empty Sprite and define its size
     background = new PIXI.Sprite();
     background.width = width;
     background.height = height;
@@ -128,9 +121,7 @@ function initScrollFilter() {
 }
 
 
-// Initialize the random grid layout
 function initGrid() {
-    // Calculer le nombre de colonnes et de lignes en fonction de la taille de l'écran
     gridColumnsCount = Math.floor(width / gridSize) + 1.2;
     gridRowsCount = Math.floor(height / gridSize) + 1.3;
 
@@ -235,12 +226,11 @@ function drawMp4(rect, videos, index) {
     videoSprite.texture.baseTexture.source.muted = true;
 
     videoSprite.interactive = true;
-    videoSprite.texture.baseTexture.source.currentTime = 0;
 
-
+    console.log(videoSprite)
+    // videoSprite.texture.
     // Ajouter un événement pour réinitialiser la vidéo lorsqu'elle se termine
     videoSprite.texture.baseTexture.source.addEventListener('ended', () => {
-        videoSprite.texture.baseTexture.source.currentTime = 0;
         videoSprite.texture.baseTexture.source.play();
     });
     container.addChild(videoSprite);
@@ -307,29 +297,30 @@ function onPointerMove(e) {
 }
 
 let deltaWheel = 0;
-
+let scrollLimit = false;
 function onWheelScroll(e) {
     deltaWheel = e.deltaY;
-    if (e.deltaY >= 100) {
+    if (e.deltaY >= 150 && !scrollLimit) {
         currentMedia++;
         if (currentMedia >= allImages.length || currentMedia >= allVideos.length) {
             currentMedia = 0;
         }
-
-
         switch (currentMedia) {
             case 0:
                 title.textContent = "The Small Things";
                 break;
             case 1:
                 title.textContent = "Your Project now";
-
         }
-
-
         initRectsAndImages(currentMedia)
+        scrollLimit = true;
     }
+}
 
+setInterval(20, rep())
+
+function rep(){
+    console.log("im")
 }
 
 function init() {
