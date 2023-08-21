@@ -1,3 +1,6 @@
+import {gsap} from "gsap";
+import {Loader} from "@pixi/loaders";
+import * as PIXI from 'pixi.js';
 
 class MasonryGrid {
     constructor(gridSize, gridColumns, gridRows, gridMin) {
@@ -9,7 +12,6 @@ class MasonryGrid {
         this.currentRects = [{x: 0, y: 0, w: this.gridColumns, h: this.gridRows}]
     }
 
-    // Takes the first rectangle on the list, and divides it in 2 more rectangles if possible
     splitCurrentRect() {
         if (this.currentRects.length) {
             const currentRect = this.currentRects.shift()
@@ -44,19 +46,15 @@ function randomInRange(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min
 }
 
-
-// Get canvas view
 const view = document.querySelector('.gallery-view');
-const resources = PIXI.Loader.shared.resources;
+let resources;
 
-// Pointer tracking
 let pointerDownTarget = 0;
 let isDown = 1;
 let pointerStart = new PIXI.Point()
 let pointerDiffStart = new PIXI.Point()
 let width, height, app, background, uniforms, diffX, diffY;
 
-// Image grid and container
 const gridSize = 60
 const gridMin = 2
 const imagePadding = 15
@@ -65,23 +63,21 @@ let widthRest, heightRest, centerX, centerY
 let rects;
 let container;
 
-// medias
-let allImages = [];
 
-let images01 = ["./src/01/jpg/hor01.png", "./src/01/jpg/hor02.png", "./src/01/jpg/ver01.png", "./src/01/jpg/ver02.png", "./src/01/jpg/square.png"]
-let images02 = ["./src/02/jpg/hor01.png", "./src/02/jpg/hor02.png", "./src/02/jpg/ver01.png", "./src/02/jpg/ver02.png", "./src/02/jpg/square.png"]
+let allImages = [];
+let images01 = [`/01/jpg/hor01.png`, `/01/jpg/hor02.png`, `/01/jpg/ver01.png`, `/01/jpg/ver02.png`, `/01/jpg/square.png`];
+let images02 = [`/02/jpg/hor01.png`, `/02/jpg/hor02.png`, `/02/jpg/ver01.png`, `/02/jpg/ver02.png`, `/02/jpg/square.png`];
 allImages.push(images01, images02);
 
 let allVideos = [];
-let videos01 = ["./src/01/mp4/hor01.mp4", "./src/01/mp4/hor02.mp4", "./src/01/mp4/ver01.mp4", "./src/01/mp4/ver02.mp4", "./src/01/mp4/square.mp4"]
-let videos02 = ["./src/02/mp4/hor01.mp4", "./src/02/mp4/hor02.mp4", "./src/02/mp4/ver01.mp4", "./src/02/mp4/ver02.mp4", "./src/02/mp4/square.mp4"]
+let videos01 = [`/01/mp4/hor01.mp4`, `/01/mp4/hor02.mp4`, `/01/mp4/ver01.mp4`, `/01/mp4/ver02.mp4`, `/01/mp4/square.mp4`];
+let videos02 = [`/02/mp4/hor01.mp4`, `/02/mp4/hor02.mp4`, `/02/mp4/ver01.mp4`, `/02/mp4/ver02.mp4`, `/02/mp4/square.mp4`];
 allVideos.push(videos01, videos02);
 
-// html
+
 const title = document.querySelector(".splashscreen-title")
 let currentMedia = 0;
 title.textContent = "The Small Things";
-
 
 function initDimensions() {
     width = window.innerWidth;
@@ -92,7 +88,6 @@ function initDimensions() {
 
 function initApp() {
     app = new PIXI.Application({view});
-    app.renderer.autoDensity = true;
     app.renderer.resize(width, height);
 }
 
@@ -100,20 +95,20 @@ function initBackground() {
     background = new PIXI.Sprite();
     background.width = width;
     background.height = height;
-    const backgroundFragmentShader = resources['shaders/gridshader.glsl'].data;
+    const backgroundFragmentShader = resources['/shaders/gridshader.glsl'].data;
     const backgroundFilter = new PIXI.Filter(undefined, backgroundFragmentShader, uniforms);
     background.filters = [backgroundFilter];
     app.stage.addChild(background);
 }
 
 function initInfinityFilter() {
-    const infinityFragmentShader = resources['shaders/infinityShader.glsl'].data;
+    const infinityFragmentShader = resources['/shaders/infinityShader.glsl'].data;
     const infinityFilter = new PIXI.Filter(undefined, infinityFragmentShader, uniforms);
     app.stage.filters.push(infinityFilter);
 }
 
 function initScrollFilter() {
-    const scrollFragmentShader = resources['shaders/scrollShader.glsl'].data;
+    const scrollFragmentShader = resources['/shaders/scrollShader.glsl'].data;
     const scrollFilter = new PIXI.Filter(undefined, scrollFragmentShader, uniforms);
     app.stage.filters.push(scrollFilter);
 }
@@ -141,7 +136,7 @@ function initContainer() {
     const totalGridWidth = gridColumnsCount * gridSize;
     const totalGridHeight = gridRowsCount * gridSize;
 
-    const centerX = (width - totalGridWidth) / 2 - imagePadding;
+    const centerX = (width - totalGridWidth) / 2 - imagePadding * 1.6;
     const centerY = (height - totalGridHeight) / 2 - imagePadding;
 
     container.position.set(centerX, centerY);
@@ -192,7 +187,6 @@ function drawImage(rect, images, index) {
         container.addChild(sprite);
     });
 }
-
 function drawMp4(rect, videos, index) {
     let videoUrl;
 
@@ -215,24 +209,22 @@ function drawMp4(rect, videos, index) {
     const videoTexture = PIXI.Texture.from(videoUrl);
     const videoSprite = new PIXI.Sprite(videoTexture);
 
-    console.log(videoSprite)
 
     videoSprite.x = rect.x * gridSize;
     videoSprite.y = rect.y * gridSize;
     videoSprite.width = rect.w * gridSize - imagePadding;
     videoSprite.height = rect.h * gridSize - imagePadding;
-    console.log(videoSprite.texture.baseTexture.source)
-    videoSprite.texture.baseTexture.source.muted = true;
-
+    videoSprite.texture.baseTexture.resource.source.muted = true;
     videoSprite.interactive = true;
-    videoSprite.texture.baseTexture.source.addEventListener('ended', () => {
-        videoSprite.texture.baseTexture.source.play();
+    videoSprite.texture.baseTexture.resource.source.addEventListener('ended', () => {
+        videoSprite.texture.baseTexture.resource.source.play();
     });
     container.addChild(videoSprite);
 }
 
+
 function initDistortionFilter() {
-    const distortionFragmentShaderCode = resources['shaders/distortshader.glsl'].data;
+    const distortionFragmentShaderCode = resources['/shaders/distortshader.glsl'].data;
     const distortionFilter = new PIXI.Filter(undefined, distortionFragmentShaderCode, uniforms);
     app.stage.filters.push(distortionFilter);
 }
@@ -306,11 +298,7 @@ function onWheelScroll(e) {
         if (currentMedia >= allImages.length || currentMedia >= allVideos.length) {
             currentMedia = 0;
         }
-
-
         gsap.to(title, {opacity:0, onComplete:changeTitle, duration:1})
-
-
 
         initRectsAndImages(currentMedia);
 
@@ -332,20 +320,23 @@ function changeTitle(){
     gsap.to(title, {opacity:1, duration:1})
 }
 
+
+
 function init() {
     initDimensions();
     initUniforms();
     initGrid();
     initApp();
 
-    // Load the necessary shaders and resources
-    PIXI.Loader.shared.add([
-        'shaders/infinityShader.glsl',
-        'shaders/distortshader.glsl',
-        'shaders/gridshader.glsl',
-        'shaders/scrollShader.glsl'
+    console.log(Loader)
+    Loader.shared.add([
+        '/shaders/infinityShader.glsl',
+        '/shaders/distortshader.glsl',
+        '/shaders/gridshader.glsl',
+        '/shaders/scrollShader.glsl'
     ]).load(() => {
         // Once the resources are loaded, initialize the rest of your app
+        resources = Loader.shared.resources;
         initBackground();
         initContainer();
         initRectsAndImages(0);
@@ -357,6 +348,4 @@ function init() {
     });
 }
 
-
-// Call the init function to start the app setup process
 init();

@@ -1,20 +1,30 @@
 {
-  "name": "gallery",
+  "name": "react-pixi-infinite2dgallery",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
-  "devDependencies": {
-    "vite": "^4.4.5"
-  },
   "dependencies": {
-    "@pixi/gif": "^2.1.0",
+    "@pixi/loaders": "^6.5.10",
     "gsap": "^3.12.2",
-    "omggif": "^1.0.10",
-    "pixi.js": "^7.2.4"
+    "pixi.js": "^7.2.4",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.15",
+    "@types/react-dom": "^18.2.7",
+    "@vitejs/plugin-react": "^4.0.3",
+    "eslint": "^8.45.0",
+    "eslint-plugin-react": "^7.32.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.3",
+    "tailwindcss": "^3.3.3",
+    "vite": "^4.4.5"
   }
 }
