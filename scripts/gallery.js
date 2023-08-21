@@ -75,7 +75,8 @@ let videos02 = [`/02/mp4/hor01.mp4`, `/02/mp4/hor02.mp4`, `/02/mp4/ver01.mp4`, `
 allVideos.push(videos01, videos02);
 
 
-const title = document.querySelector(".splashscreen-title")
+const title = document.querySelector(".splashscreen-title");
+const link = document.querySelector(".c-project--link");
 let currentMedia = 0;
 title.textContent = "The Small Things";
 
@@ -313,9 +314,12 @@ function changeTitle(){
     switch (currentMedia) {
         case 0:
             title.textContent = "The Small Things";
+            link.setAttribute('href', 'smallthings');
             break;
         case 1:
             title.textContent = "Your Project now";
+            link.setAttribute('href', 'ypn');
+
     }
     gsap.to(title, {opacity:1, duration:1})
 }

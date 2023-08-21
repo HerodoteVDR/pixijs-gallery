@@ -1,8 +1,8 @@
 import {useEffect, useState} from 'react';
 import React from "react";
 
-
 function GalleryPage() {
+    let currentMedia;
     const [isLoaded, setLoaded] = useState(false)
     useEffect(() => {
         const baliseScript = document.createElement("script")
@@ -23,7 +23,7 @@ function GalleryPage() {
             <div className="o-container" id="gallery-container">
                 <div className="c-center_canvas-title">
                     <h1 className="splashscreen-title"></h1>
-                    <a href="#">learn more</a>
+                    <a className="c-project--link" href="#">learn more</a>
                 </div>
                 <canvas className="gallery-view"></canvas>
             </div>
