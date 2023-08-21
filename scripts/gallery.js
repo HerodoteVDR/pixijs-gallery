@@ -321,22 +321,36 @@ function changeTitle(){
 }
 
 
-
+let initNum = 0;
 function init() {
     initDimensions();
     initUniforms();
     initGrid();
     initApp();
 
-    console.log(Loader)
-    Loader.shared.add([
-        '/shaders/infinityShader.glsl',
-        '/shaders/distortshader.glsl',
-        '/shaders/gridshader.glsl',
-        '/shaders/scrollShader.glsl'
-    ]).load(() => {
-        // Once the resources are loaded, initialize the rest of your app
-        resources = Loader.shared.resources;
+    if(initNum === 0){
+        Loader.shared.add([
+            '/shaders/infinityShader.glsl',
+            '/shaders/distortshader.glsl',
+            '/shaders/gridshader.glsl',
+            '/shaders/scrollShader.glsl'
+        ]).load(() => {
+            // Once the resources are loaded, initialize the rest of your app
+            resources = Loader.shared.resources;
+            initBackground();
+            initContainer();
+            initRectsAndImages(0);
+            initEvents();
+            app.stage.filters = [];
+            initInfinityFilter();
+            initDistortionFilter();
+            initScrollFilter();
+
+            initNum++;
+
+        });
+    }
+    else {
         initBackground();
         initContainer();
         initRectsAndImages(0);
@@ -345,7 +359,37 @@ function init() {
         initInfinityFilter();
         initDistortionFilter();
         initScrollFilter();
-    });
+    }
+
 }
 
 init();
+
+let resizeTimer
+function onResize () {
+    if (resizeTimer) clearTimeout(resizeTimer)
+    resizeTimer = setTimeout(() => {
+        clean()
+        init()
+    }, 200)
+}
+// Listen to resize event
+window.addEventListener('resize', onResize)
+
+// Clean the current Application
+function clean () {
+    // Stop the current animation
+    app.ticker.stop()
+    // Remove event listeners
+    app.stage
+        .off('pointerdown', onPointerDown)
+        .off('pointerup', onPointerUp)
+        .off('pointerupoutside', onPointerUp)
+        .off('pointermove', onPointerMove)
+    // Abort all fetch calls in progress
+    rects.forEach(rect => {
+        if (rect.discovered && !rect.loaded) {
+            rect.controller.abort()
+        }
+    })
+}

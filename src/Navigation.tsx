@@ -1,4 +1,5 @@
-function Nav() {
+import React from "react";
+function Navigation() {
     return (
         <>
             <nav className="c-mainnav">
@@ -15,4 +16,4 @@ function Nav() {
     )
 }
 
-export default Nav
+export default Navigation;

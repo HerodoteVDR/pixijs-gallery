@@ -64,3 +64,17 @@ body {
     text-shadow: var(--color-blue-dark) 2px 2px 10px;
     text-align: center;
 }
+
+.c-mainnav {
+    display: block;
+}
+
+.c-nav-list {
+    list-style: none;
+    display: flex;
+    flex-direction: row;
+    align-content: space-between;
+    justify-content: space-around;
+    text-align: center;
+    align-items: center;
+}
