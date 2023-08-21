@@ -297,10 +297,17 @@ function onPointerMove(e) {
 }
 
 let deltaWheel = 0;
-let scrollLimit = false;
+let isTimerRunning = false;
+let delayTime = 10000;
+
+
 function onWheelScroll(e) {
+    if (isTimerRunning) {
+        return; // Si le timer est en cours d'exécution, ne pas traiter l'événement
+    }
+
     deltaWheel = e.deltaY;
-    if (e.deltaY >= 150 && !scrollLimit) {
+    if (e.deltaY >= 150) {
         currentMedia++;
         if (currentMedia >= allImages.length || currentMedia >= allVideos.length) {
             currentMedia = 0;
@@ -312,16 +319,14 @@ function onWheelScroll(e) {
             case 1:
                 title.textContent = "Your Project now";
         }
-        initRectsAndImages(currentMedia)
-        scrollLimit = true;
+        initRectsAndImages(currentMedia);
+
+        // Lancer le timer pour empêcher les appels successifs pendant le délai
+        isTimerRunning = true;
+        setTimeout(() => {
+            isTimerRunning = false; // Le délai est écoulé, permettre de nouveaux appels
+        }, delayTime);
     }
-    
-}
-
-setInterval(20, rep())
-
-function rep(){
-    console.log("im")
 }
 
 function init() {
