@@ -67,12 +67,16 @@ let container;
 let allImages = [];
 let images01 = [`/01/jpg/hor01.png`, `/01/jpg/hor02.png`, `/01/jpg/ver01.png`, `/01/jpg/ver02.png`, `/01/jpg/square.png`];
 let images02 = [`/02/jpg/hor01.png`, `/02/jpg/hor02.png`, `/02/jpg/ver01.png`, `/02/jpg/ver02.png`, `/02/jpg/square.png`];
-allImages.push(images01, images02);
+let images03 = [`/01/jpg/hor01.png`, `/01/jpg/hor02.png`, `/01/jpg/ver01.png`, `/01/jpg/ver02.png`, `/01/jpg/square.png`];
+
+allImages.push(images01, images02, images03);
 
 let allVideos = [];
 let videos01 = [`/01/mp4/hor01.mp4`, `/01/mp4/hor02.mp4`, `/01/mp4/ver01.mp4`, `/01/mp4/ver02.mp4`, `/01/mp4/square.mp4`];
 let videos02 = [`/02/mp4/hor01.mp4`, `/02/mp4/hor02.mp4`, `/02/mp4/ver01.mp4`, `/02/mp4/ver02.mp4`, `/02/mp4/square.mp4`];
-allVideos.push(videos01, videos02);
+let videos03 = [`/01/mp4/hor01.mp4`, `/01/mp4/hor02.mp4`, `/01/mp4/ver01.mp4`, `/01/mp4/ver02.mp4`, `/01/mp4/square.mp4`];
+
+allVideos.push(videos01, videos02, videos03);
 
 
 const title = document.querySelector(".splashscreen-title");
@@ -144,7 +148,9 @@ function initContainer() {
 }
 
 function initRectsAndImages(index) {
-    container.removeChildren();
+    container.destroy();
+    initContainer();
+
     for (const rect of rects) {
         if (randomInRange(0, 3) < 2) drawMp4(rect, allVideos, index);
         else drawImage(rect, allImages, index);
@@ -188,6 +194,7 @@ function drawImage(rect, images, index) {
         container.addChild(sprite);
     });
 }
+
 function drawMp4(rect, videos, index) {
     let videoUrl;
 
@@ -299,7 +306,9 @@ function onWheelScroll(e) {
         if (currentMedia >= allImages.length || currentMedia >= allVideos.length) {
             currentMedia = 0;
         }
-        gsap.to(title, {opacity:0, onComplete:changeTitle, duration:1})
+        gsap.to(title, {opacity: 0, onComplete: changeTitle, duration: 1})
+
+        gsap.to(container, {opacity: 0, duration: 1})
 
         initRectsAndImages(currentMedia);
 
@@ -310,7 +319,7 @@ function onWheelScroll(e) {
     }
 }
 
-function changeTitle(){
+function changeTitle() {
     switch (currentMedia) {
         case 0:
             title.textContent = "The Small Things";
@@ -319,20 +328,23 @@ function changeTitle(){
         case 1:
             title.textContent = "Your Project now";
             link.setAttribute('href', 'ypn');
+            break;
+        default : title.textContent = `Project n° ${currentMedia.toString()}`
 
     }
-    gsap.to(title, {opacity:1, duration:1})
+    gsap.to(title, {opacity: 1, duration: 1})
 }
 
 
 let initNum = 0;
+
 function init() {
     initDimensions();
     initUniforms();
     initGrid();
     initApp();
 
-    if(initNum === 0){
+    if (initNum === 0) {
         Loader.shared.add([
             '/shaders/infinityShader.glsl',
             '/shaders/distortshader.glsl',
@@ -353,8 +365,7 @@ function init() {
             initNum++;
 
         });
-    }
-    else {
+    } else {
         initBackground();
         initContainer();
         initRectsAndImages(0);
@@ -370,18 +381,20 @@ function init() {
 init();
 
 let resizeTimer
-function onResize () {
+
+function onResize() {
     if (resizeTimer) clearTimeout(resizeTimer)
     resizeTimer = setTimeout(() => {
         clean()
         init()
     }, 200)
 }
+
 // Listen to resize event
 window.addEventListener('resize', onResize)
 
 // Clean the current Application
-function clean () {
+function clean() {
     // Stop the current animation
     app.ticker.stop()
     // Remove event listeners

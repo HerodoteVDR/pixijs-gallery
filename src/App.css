@@ -106,15 +106,11 @@ body {
     align-items: center;
     padding: 19px 0 19px 40px;
 
-
     background-image: linear-gradient(90deg, rgba(9, 11, 38, 0), var(--color-blue-dark) 70%);
-
 }
 
 .c-contact--button {
-    border-radius: calc(50 / 16 * 1rem);
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
+    border-radius: calc(50 / 16 * 1rem) 0 0 calc(50 / 16 * 1rem);
     background-color: var(--color-blue);
     padding: 20px 40px 20px 40px;
 }
