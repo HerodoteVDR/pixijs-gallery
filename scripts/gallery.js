@@ -72,9 +72,9 @@ let images03 = [`/01/jpg/hor01.png`, `/01/jpg/hor02.png`, `/01/jpg/ver01.png`, `
 allImages.push(images01, images02, images03);
 
 let allVideos = [];
-let videos01 = [`/01/mp4/hor01.mp4`, `/01/mp4/hor02.mp4`, `/01/mp4/ver01.mp4`, `/01/mp4/ver02.mp4`, `/01/mp4/square.mp4`];
-let videos02 = [`/02/mp4/hor01.mp4`, `/02/mp4/hor02.mp4`, `/02/mp4/ver01.mp4`, `/02/mp4/ver02.mp4`, `/02/mp4/square.mp4`];
-let videos03 = [`/01/mp4/hor01.mp4`, `/01/mp4/hor02.mp4`, `/01/mp4/ver01.mp4`, `/01/mp4/ver02.mp4`, `/01/mp4/square.mp4`];
+let videos01 = [`/01/webm/hor01.webm`, `/01/webm/hor02.webm`, `/01/webm/ver01.webm`, `/01/webm/ver02.webm`, `/01/webm/square.webm`];
+let videos02 = [`/02/webm/hor01.webm`, `/02/webm/hor02.webm`, `/02/webm/ver01.webm`, `/02/webm/ver02.webm`, `/02/webm/square.webm`];
+let videos03 = [`/01/webm/hor01.webm`, `/01/webm/hor02.webm`, `/01/webm/ver01.webm`, `/01/webm/ver02.webm`, `/01/webm/square.webm`];
 
 allVideos.push(videos01, videos02, videos03);
 
@@ -152,7 +152,7 @@ function initRectsAndImages(index) {
     initContainer();
 
     for (const rect of rects) {
-        if (randomInRange(0, 3) < 2) drawMp4(rect, allVideos, index);
+        if (randomInRange(0, 3) < 2) drawVideo(rect, allVideos, index);
         else drawImage(rect, allImages, index);
     }
 }
@@ -195,7 +195,7 @@ function drawImage(rect, images, index) {
     });
 }
 
-function drawMp4(rect, videos, index) {
+function drawVideo(rect, videos, index) {
     let videoUrl;
 
     if (rect.w > rect.h) {
